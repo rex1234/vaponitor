@@ -1,0 +1,19 @@
+- name: CallingStation
+  description: CS
+  command: ps -aux
+  url: callingstation.net
+
+- name: Kartickator
+  description: CS
+  command: ps -aux
+  url: vaporized.life
+
+- name: Zomboid
+  description: CS
+  command: ps -aux
+  url: null
+
+- name: Dev portal
+  description: CS
+  command: ps -aux
+  url: dev.vaporized.life
