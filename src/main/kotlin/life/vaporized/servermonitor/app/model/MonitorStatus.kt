@@ -8,6 +8,7 @@ sealed interface MonitorStatus {
     data class AppStatus(
         val app: AppDefinition,
         val isRunning: Boolean,
+        val isHttpReachable: Boolean?,
         val isHttpsReachable: Boolean?,
         val message: String? = null,
     ) : MonitorStatus {

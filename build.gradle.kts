@@ -17,6 +17,22 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+tasks {
+    val shadowJar by getting(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+        archiveBaseName.set("ktor-app")
+        archiveClassifier.set("")
+        archiveVersion.set("")
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "MainKt"))
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+}
+
 repositories {
     mavenCentral()
 }

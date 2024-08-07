@@ -1,19 +1,24 @@
 - name: CallingStation
   description: CS
-  command: ps -aux
+  command: systemctl is-active pokrio
   url: callingstation.net
 
 - name: Kartickator
   description: CS
-  command: ps -aux
+  command: pm2 status kartickator
   url: vaporized.life
 
 - name: Zomboid
   description: CS
-  command: ps -aux
+  command: ps -aux | grep zomboid
   url: null
 
 - name: Dev portal
   description: CS
-  command: ps -aux
+  command: s -aux | grep servermonitor
   url: dev.vaporized.life
+
+- name: Test fail
+  description: CS
+  command: 'yes'
+  url: devcdfa.vaporized.life

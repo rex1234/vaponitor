@@ -35,6 +35,7 @@ class AppRunningMonitor(
         MonitorStatus.AppStatus(
             app = app,
             isRunning = isProcessRunning.await(),
+            isHttpReachable = isReachableHttp.await(),
             isHttpsReachable = isHttpsReachableHttps.await(),
         )
     }
