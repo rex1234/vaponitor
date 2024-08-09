@@ -10,10 +10,11 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
+import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.Evaluator
 import life.vaporized.servermonitor.app.model.MonitorStatus
 
-fun Application.configureRouting(evaluator: Evaluator) {
+fun Application.configureRouting(evaluator: Evaluator, discordBot: DiscordBot) {
     install(Resources)
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -33,6 +34,8 @@ fun Application.configureRouting(evaluator: Evaluator) {
                     append("<br/>")
                 }
             }
+
+            discordBot.sendMessage(response)
 
             call.respondText(response, ContentType.Text.Html)
         }

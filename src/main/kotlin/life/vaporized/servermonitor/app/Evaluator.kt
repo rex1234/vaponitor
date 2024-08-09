@@ -14,17 +14,17 @@ import net.mamoe.yamlkt.Yaml
 import java.io.File
 
 class Evaluator {
-    private val staticMonitors: List<IResourceMonitor>
+    private val resourceMonitors: List<IResourceMonitor>
         get() = listOf(
             DiskUsageMonitor,
             RamUsageMonitor,
         )
 
-    private val dynamicMonitors: List<AppRunningMonitor>
+    private val appMonitors: List<AppRunningMonitor>
         get() = loadMonitors()
 
     suspend fun evaluate(): List<MonitorStatus> = coroutineScope {
-        val status = (dynamicMonitors + staticMonitors).map { monitor ->
+        val status = (appMonitors + resourceMonitors).map { monitor ->
             async {
                 monitor.evaluate().also { status ->
                     println("${monitor.name}: ${monitor.message}")

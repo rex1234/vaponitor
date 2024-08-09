@@ -36,3 +36,5 @@ out/
 .vscode/
 
 appconfig.json
+
+.env

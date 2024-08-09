@@ -10,12 +10,12 @@
 
 - name: Zomboid
   description: CS
-  command: ps -aux | grep zomboid
+  command: "ps -aux | grep zomboid"
   url: null
 
 - name: Dev portal
   description: CS
-  command: s -aux | grep servermonitor
+  command: "ps -aux | grep servermonitor"
   url: dev.vaporized.life
 
 - name: Test fail

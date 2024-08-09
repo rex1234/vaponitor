@@ -57,5 +57,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.squareup.okhttp3:logging-interceptor")
 
-    implementation("org.yaml:snakeyaml:1.30")
+    implementation("org.yaml:snakeyaml:2.0")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("me.jakejmattson:DiscordKt:0.23.4")
 }
