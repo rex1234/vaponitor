@@ -22,7 +22,7 @@ class AppRunningMonitor(
     override val message: String
         get() = app.url ?: ""
 
-    override suspend fun evaluate(): MonitorStatus.AppStatus = coroutineScope {
+    override suspend fun evaluate(): List<MonitorStatus.AppStatus> = coroutineScope {
         val isProcessRunning = async {
             isProcessRunning(app.command)
         }
@@ -37,7 +37,7 @@ class AppRunningMonitor(
             isRunning = isProcessRunning.await(),
             isHttpReachable = isReachableHttp.await(),
             isHttpsReachable = isHttpsReachableHttps.await(),
-        )
+        ).let { listOf(it) }
     }
 
     private suspend fun isProcessRunning(processName: String) = withContext(Dispatchers.IO) {

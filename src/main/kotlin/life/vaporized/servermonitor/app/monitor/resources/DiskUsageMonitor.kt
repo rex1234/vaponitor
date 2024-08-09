@@ -10,11 +10,11 @@ object DiskUsageMonitor : IResourceMonitor {
     override val name: String = "Disk usage"
     override val message: String = "Current usage of /"
 
-    override suspend fun evaluate(): ResourceStatus? =
-        getDiskUsage().firstOrNull()?.let { (_, free, total) ->
-            return ResourceStatus(
+    override suspend fun evaluate(): List<ResourceStatus> =
+        getDiskUsage().map { (unit, free, total) ->
+            ResourceStatus(
                 name = name,
-                description = message,
+                description = "Disk usage of $unit",
                 current = (total - free).toFloat(),
                 total = total.toFloat(),
             )

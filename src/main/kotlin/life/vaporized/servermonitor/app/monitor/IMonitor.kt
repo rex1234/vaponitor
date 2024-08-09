@@ -7,5 +7,5 @@ interface IMonitor<T : MonitorStatus> {
     val name: String
     val message: String
 
-    suspend fun evaluate(): T?
+    suspend fun evaluate(): List<T>
 }

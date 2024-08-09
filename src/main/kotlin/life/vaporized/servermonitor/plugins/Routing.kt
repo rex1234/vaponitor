@@ -13,8 +13,13 @@ import kotlinx.serialization.Serializable
 import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.Evaluator
 import life.vaporized.servermonitor.app.model.MonitorStatus
+import org.koin.ktor.ext.inject
 
-fun Application.configureRouting(evaluator: Evaluator, discordBot: DiscordBot) {
+fun Application.configureRouting() {
+
+    val evaluator: Evaluator by inject()
+    val discordBot: DiscordBot by inject()
+
     install(Resources)
     install(StatusPages) {
         exception<Throwable> { call, cause ->
