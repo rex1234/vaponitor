@@ -1,0 +1,72 @@
+<div th:fragment="appReport(appStatus)">
+
+    <div class="row g-3 align-items-center" style="margin-top: 16px">
+        <div class="col-auto">
+            <span class="status-indicator status-indicator-animated"
+                  th:classappend="${appStatus.isError ? 'status-red' : 'status-green'}">
+              <span class="status-indicator-circle"></span>
+              <span class="status-indicator-circle"></span>
+              <span class="status-indicator-circle"></span>
+            </span>
+        </div>
+        <div class="col">
+            <h2 class="page-title" th:text="${appStatus.name}"></h2>
+            <div class="text-secondary" style="margin-top: 5px">
+                <ul class="list-inline list-inline-dots mb-0">
+                    <li class="list-inline-item">
+                        <span class="text-green" th:if="${!appStatus.isError}">Up</span>
+                        <span class="text-red" th:if="${appStatus.isError}">Down</span>
+                    </li>
+                    <li class="list-inline-item">
+                        <a th:if="${appStatus.app.url != null}" th:href="${appStatus.app.description}"
+                           th:text="${appStatus.app.description}"></a>
+                        <span th:if="${appStatus.app.url == null}" th:text="${appStatus.app.description}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!--        <div class="col-md-auto ms-auto d-print-none">-->
+        <!--            <div class="btn-list">-->
+        <!--                <a href="#" class="btn btn-primary">-->
+        <!--                    &lt;!&ndash; Download SVG icon from http://tabler-icons.io/i/player-pause &ndash;&gt;-->
+        <!--                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"-->
+        <!--                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"-->
+        <!--                         stroke-linecap="round" stroke-linejoin="round">-->
+        <!--                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>-->
+        <!--                        <path d="M6 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/>-->
+        <!--                        <path d="M14 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/>-->
+        <!--                    </svg>-->
+        <!--                    Pause this monitor-->
+        <!--                </a>-->
+        <!--            </div>-->
+        <!--        </div>-->
+    </div>
+
+    <div class="row row-cards" style="margin-top: 8px">
+        <div class="col-md-4" th:if="${appStatus.app.url != null}">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader" th:text="${appStatus.isHttpReachable} ? 'HTTP up' : 'HTTP down'"></div>
+                    <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" th:if="${appStatus.app.url != null}">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTPS up' : 'HTTPS down'"></div>
+                    <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" th:if="${appStatus.app.command != null}">
+            <div class="card">
+                <div class="card-body" style="background: #ffd7d7">
+                    <div class="subheader" th:text="${appStatus.isAlive} ? 'Process alive' : 'Process down'"></div>
+                    <div class="h3 m-0" th:text="${appStatus.app.command}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

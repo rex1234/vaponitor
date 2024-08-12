@@ -9,6 +9,7 @@ import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.thymeleaf.*
 import kotlinx.serialization.Serializable
 import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.Evaluator
@@ -42,16 +43,19 @@ fun Application.configureRouting() {
 
             discordBot.sendMessage(response)
 
-            call.respondText(response, ContentType.Text.Html)
+            call.respond(
+                ThymeleafContent(
+                    template = "index2",
+                    model = mapOf("appStatusList" to status.filterIsInstance<MonitorStatus.AppStatus>()),
+                )
+            )
         }
         get<Articles> { article ->
             // Get all articles ...
             call.respond("List of articles sorted starting from ${article.sort}")
         }
         // Static plugin. Try to access `/static/index.html`
-        static("/static") {
-            resources("static")
-        }
+        staticResources("/", "static")
     }
 }
 

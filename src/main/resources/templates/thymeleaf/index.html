@@ -5,7 +5,9 @@
     <title>Title</title>
 </head>
 <body>
-<span th:text="${user.name}"></span>
+<div th:each="appStatus : ${appStatusList}">
+    <div th:include="app-status :: appReport(${appStatus})"></div>
+</div>
 </body>
 </html>
 

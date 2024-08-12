@@ -27,9 +27,7 @@ class Evaluator {
         val status = (dynamicMonitors + staticMonitors).map { monitor ->
             async {
                 println("${monitor.name}: ${monitor.message}")
-                monitor.evaluate().also { result ->
-                    result.forEach(::println)
-                }
+                monitor.evaluate().onEach(::println)
             }
         }
         status.awaitAll().flatten()

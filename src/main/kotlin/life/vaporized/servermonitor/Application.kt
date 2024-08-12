@@ -9,7 +9,6 @@ import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.cron.CronJobManager
 import life.vaporized.servermonitor.app.cron.Jobs
 import life.vaporized.servermonitor.plugins.configureHTTP
-import life.vaporized.servermonitor.plugins.configureMonitoring
 import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
 import mainModule
@@ -25,15 +24,13 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     koin {
-        printLogger()
+        //printLogger()
         modules(mainModule)
     }
 
     configureTemplating()
-    configureMonitoring()
     configureHTTP()
     configureRouting()
-
 
     val discordBot: DiscordBot by inject()
     scope.launch {
@@ -45,7 +42,6 @@ fun Application.module() {
 
     jobs.start(cronManager)
 
-    cronManager.stopAllJobs()
     environment.monitor.subscribe(ApplicationStopping) {
         cronManager.stopAllJobs()
         cronManager.cancelAllJobs()

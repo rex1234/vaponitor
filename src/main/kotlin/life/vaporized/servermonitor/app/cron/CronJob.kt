@@ -3,7 +3,9 @@ package life.vaporized.servermonitor.app.cron
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 
-class CronJob(private val intervalMillis: Duration) {
+class CronJob(
+    private val interval: Duration,
+) {
 
     private val scope = CoroutineScope(Dispatchers.Default)
     private var job: Job? = null
@@ -12,7 +14,7 @@ class CronJob(private val intervalMillis: Duration) {
         job = scope.launch {
             while (isActive) {
                 action()
-                delay(intervalMillis)
+                delay(interval)
             }
         }
     }

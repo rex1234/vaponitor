@@ -35,6 +35,5 @@ out/
 ### VS Code ###
 .vscode/
 
-appconfig.json
-
+appconfig.yaml
 .env

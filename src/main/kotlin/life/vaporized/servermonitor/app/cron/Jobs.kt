@@ -3,25 +3,28 @@ package life.vaporized.servermonitor.app.cron
 import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.Evaluator
 import life.vaporized.servermonitor.app.model.MonitorStatus
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class Jobs(
     private val evaluator: Evaluator,
     private val discordBot: DiscordBot,
 ) {
 
-    fun start(
-        cronJobManager: CronJobManager,
-    ) {
-        cronJobManager.addJob(10.minutes, ::evaluateMonitors)
+    fun start(cronJobManager: CronJobManager) {
+        cronJobManager.addJob(10.seconds, ::evaluateMonitors)
     }
 
-    suspend fun evaluateMonitors() {
+    private suspend fun evaluateMonitors() {
+        println("Cron: evaluateMonitors")
         val result = evaluator.evaluate()
+        result.forEach {
+            println(it)
+        }
         result
             .filterIsInstance<MonitorStatus.AppStatus>()
             .filter { it.isError }
             .forEach { app ->
+                println("Reporting error for $app")
                 discordBot.sendMessage(app.errorMessage)
             }
     }
