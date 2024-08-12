@@ -62,7 +62,7 @@
         </div>
         <div class="col-md-4" th:if="${appStatus.app.command != null}">
             <div class="card">
-                <div class="card-body" style="background: #ffd7d7">
+                <div class="card-body" th:style="${!appStatus.isAlive ? 'background: #ffd7d7' : ''}">
                     <div class="subheader" th:text="${appStatus.isAlive} ? 'Process alive' : 'Process down'"></div>
                     <div class="h3 m-0" th:text="${appStatus.app.command}"></div>
                 </div>

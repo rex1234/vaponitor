@@ -8,9 +8,7 @@ import life.vaporized.servermonitor.app.model.AppDefinition
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 
 class AppRunningMonitor(
     private val app: AppDefinition,
@@ -24,7 +22,7 @@ class AppRunningMonitor(
 
     override suspend fun evaluate(): List<MonitorStatus.AppStatus> = coroutineScope {
         val isProcessRunning = async {
-            isProcessRunning(app.command)
+            isProcessRunning(app)
         }
         val isReachableHttp = async {
             app.url?.let { isUrlReachable("http://$it") }
@@ -40,18 +38,18 @@ class AppRunningMonitor(
         ).let { listOf(it) }
     }
 
-    private suspend fun isProcessRunning(processName: String) = withContext(Dispatchers.IO) {
-        println("Running pgrep for $processName")
+    private suspend fun isProcessRunning(app: AppDefinition) = withContext(Dispatchers.IO) {
+        println("Running ${app.name} - ${app.command}")
 
-        try {
-            val processBuilder = ProcessBuilder("pgrep", "-f", processName)
-            val process = processBuilder.start()
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
+        val process = ProcessBuilder("bash", "-c", app.command)
+            .redirectErrorStream(true)
+            .start()
 
-            // Check if there is any output from pgrep
-            reader.readLine() != null
-        } catch (e: Exception) {
-            false
+        val output = process.inputStream.bufferedReader().readText().trim()
+        val exitCode = process.waitFor()
+
+        return@withContext (exitCode == 0 && output.isNotEmpty()).also {
+            println("Process ${app.name} running: $it")
         }
     }
 
