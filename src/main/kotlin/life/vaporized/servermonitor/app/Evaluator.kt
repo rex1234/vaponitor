@@ -5,7 +5,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.decodeFromString
 import life.vaporized.servermonitor.app.model.AppDefinition
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
@@ -23,14 +23,14 @@ class Evaluator {
     private val dynamicMonitors: List<AppRunningMonitor>
         get() = loadMonitors()
 
-    suspend fun evaluate(): List<MonitorStatus> = coroutineScope {
+    suspend fun evaluate(): MonitorEvaluation = coroutineScope {
         val status = (dynamicMonitors + staticMonitors).map { monitor ->
             async {
                 println("${monitor.name}: ${monitor.message}")
                 monitor.evaluate().onEach(::println)
             }
         }
-        status.awaitAll().flatten()
+        MonitorEvaluation(status.awaitAll().flatten())
     }
 
     private fun loadMonitors(): List<AppRunningMonitor> {

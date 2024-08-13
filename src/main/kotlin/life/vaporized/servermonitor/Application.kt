@@ -19,7 +19,6 @@ val scope = CoroutineScope(Dispatchers.IO)
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
-
 }
 
 fun Application.module() {
@@ -40,7 +39,7 @@ fun Application.module() {
     val cronManager: CronJobManager by inject()
     val jobs: Jobs by inject()
 
-    jobs.start(cronManager)
+    jobs.init(cronManager)
 
     environment.monitor.subscribe(ApplicationStopping) {
         cronManager.stopAllJobs()

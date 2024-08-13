@@ -11,15 +11,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.thymeleaf.*
 import kotlinx.serialization.Serializable
-import life.vaporized.servermonitor.app.DiscordBot
-import life.vaporized.servermonitor.app.Evaluator
+import life.vaporized.servermonitor.app.StatusHolder
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
 
-    val evaluator: Evaluator by inject()
-    val discordBot: DiscordBot by inject()
+    val statusHolder: StatusHolder by inject()
 
     install(Resources)
     install(StatusPages) {
@@ -29,19 +27,7 @@ fun Application.configureRouting() {
     }
     routing {
         get("/") {
-            val status = evaluator.evaluate()
-            println(status)
-            val response = buildString {
-                status.forEach { monitorStatus ->
-                    when (monitorStatus) {
-                        is MonitorStatus.AppStatus -> append(monitorStatus.toString())
-                        is MonitorStatus.ResourceStatus -> append(monitorStatus.toString())
-                    }
-                    append("<br/>")
-                }
-            }
-
-            discordBot.sendMessage(response)
+            val status = statusHolder.last?.list ?: emptyList()
 
             call.respond(
                 ThymeleafContent(
