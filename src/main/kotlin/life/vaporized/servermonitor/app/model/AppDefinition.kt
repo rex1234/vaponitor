@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class AppDefinition(
     val name: String,
     val description: String,
-    val command: String,
+    val command: String? = null,
     val url: String? = null,
 )

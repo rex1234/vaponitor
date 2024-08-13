@@ -15,7 +15,6 @@ class Jobs(
     fun init(cronJobManager: CronJobManager) {
         cronJobManager.addJob(10.seconds, ::evaluateMonitors)
     }
-
     private suspend fun evaluateMonitors() {
         println("Cron: evaluateMonitors")
         val result = evaluator.evaluate()
