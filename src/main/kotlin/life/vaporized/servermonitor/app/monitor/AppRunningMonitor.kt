@@ -39,17 +39,28 @@ class AppRunningMonitor(
     }
 
     private suspend fun isProcessRunning(app: AppDefinition) = withContext(Dispatchers.IO) {
-        println("Running ${app.name} - ${app.command}")
+        try {
+            println("Running ${app.name} - ${app.command}")
 
-        val process = ProcessBuilder("bash", "-c", app.command)
-            .redirectErrorStream(true)
-            .start()
+            val process = ProcessBuilder("bash", "-c", app.command)
+                .start()
 
-        val output = process.inputStream.bufferedReader().readText().trim()
-        val exitCode = process.waitFor()
+            var hasOutput = false
+            process.inputStream.bufferedReader().use { reader ->
+                reader.forEachLine { line ->
+                    if (line.isNotEmpty()) {
+                        hasOutput = true
+                    }
+                }
+            }
+            val exitCode = process.waitFor()
 
-        return@withContext (exitCode == 0 && output.isNotEmpty()).also {
-            println("Process ${app.name} running: $it")
+            return@withContext (exitCode == 0 && hasOutput).also {
+                println("Process ${app.name} running: $it")
+            }
+        } catch (e: Exception) {
+            println(e)
+            return@withContext false
         }
     }
 
