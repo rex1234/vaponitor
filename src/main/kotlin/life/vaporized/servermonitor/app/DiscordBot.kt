@@ -12,8 +12,12 @@ import io.github.cdimascio.dotenv.Dotenv
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import life.vaporized.servermonitor.app.util.getLogger
 
-class DiscordBot {
+class DiscordBot(
+) {
+    private val logger = getLogger()
+
     private val dotenv = Dotenv.load()
 
     private val TOKEN = dotenv["TOKEN"] ?: throw IllegalArgumentException("TOKEN not found in .env")
@@ -32,7 +36,7 @@ class DiscordBot {
 
         // Listen for the Ready event to know when the bot has connected
         kord.on<ReadyEvent> {
-            println("Bot is ready!")
+            logger.info("Discord bot initialized")
             isReady = true
         }
 

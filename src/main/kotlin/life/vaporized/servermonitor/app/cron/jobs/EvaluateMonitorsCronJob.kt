@@ -6,6 +6,7 @@ import life.vaporized.servermonitor.app.StatusHolder
 import life.vaporized.servermonitor.app.cron.ICronJob
 import life.vaporized.servermonitor.app.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.util.getLogger
 
 class EvaluateMonitorsCronJob(
     private val evaluator: Evaluator,
@@ -13,9 +14,9 @@ class EvaluateMonitorsCronJob(
     private val statusHolder: StatusHolder,
 ) : ICronJob {
 
-    override suspend fun run() {
-        println("Cron: evaluateMonitors")
+    private val logger = getLogger()
 
+    override suspend fun run() {
         val result = evaluator.evaluate()
         reportApps(result)
         statusHolder.add(result)
@@ -36,7 +37,7 @@ class EvaluateMonitorsCronJob(
             appStatuses
                 .filter { it.isError }
                 .forEach { app ->
-                    println("Reporting error for $app")
+                    logger.info("Reporting error for $app on discord")
                     discordBot.sendMessage(app.errorMessage)
                 }
         }

@@ -64,4 +64,6 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
     implementation("me.jakejmattson:DiscordKt:0.23.4")
     implementation("com.github.oshi:oshi-core:6.4.1")
+    implementation("org.slf4j:slf4j-api:2.0.0")
+    implementation("ch.qos.logback:logback-classic:1.4.12")
 }

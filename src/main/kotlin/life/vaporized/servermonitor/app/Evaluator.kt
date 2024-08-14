@@ -10,10 +10,14 @@ import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
+import life.vaporized.servermonitor.app.util.getLogger
 import net.mamoe.yamlkt.Yaml
 import java.io.File
 
 class Evaluator {
+
+    val logger = getLogger()
+
     private val staticMonitors: List<IResourceMonitor>
         get() = listOf(
             DiskUsageMonitor,
@@ -26,8 +30,10 @@ class Evaluator {
     suspend fun evaluate(): MonitorEvaluation = coroutineScope {
         val status = (dynamicMonitors + staticMonitors).map { monitor ->
             async {
-                println("${monitor.name}: ${monitor.message}")
-                monitor.evaluate().onEach(::println)
+                logger.info("${monitor.name}: ${monitor.message}")
+                monitor.evaluate().onEach {
+                    logger.info(it.toString())
+                }
             }
         }
         MonitorEvaluation(status.awaitAll().flatten())
@@ -36,9 +42,9 @@ class Evaluator {
     private fun loadMonitors(): List<AppRunningMonitor> {
         val yamlData = File("appconfig.yaml").readText()
         val services: List<AppDefinition> = Yaml.Default.decodeFromString(yamlData)
-
-        // Print the loaded services
-        services.forEach { println(it) }
+        services.forEach {
+            logger.info("Initializing monitor forz: $it")
+        }
         return services.map(::AppRunningMonitor)
     }
 }

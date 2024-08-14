@@ -6,6 +6,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.model.AppDefinition
 import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.util.getLogger
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -13,6 +14,8 @@ import java.io.IOException
 class AppRunningMonitor(
     private val app: AppDefinition,
 ) : IMonitor<MonitorStatus.AppStatus> {
+
+    private val logger = getLogger()
 
     override val name: String
         get() = app.name
@@ -40,7 +43,7 @@ class AppRunningMonitor(
 
     private suspend fun isProcessRunning(app: AppDefinition) = withContext(Dispatchers.IO) {
         try {
-            println("Running ${app.name} - ${app.command}")
+            logger.info("Running ${app.name} - ${app.command}")
 
             val process = ProcessBuilder("bash", "-c", app.command)
                 .start()
@@ -56,16 +59,16 @@ class AppRunningMonitor(
             val exitCode = process.waitFor()
 
             return@withContext (exitCode == 0 && hasOutput).also {
-                println("Process ${app.name} running: $it")
+                logger.info("Process ${app.name} running: $it")
             }
         } catch (e: Exception) {
-            println(e)
+            logger.debug("Process evaluation failed", e)
             return@withContext false
         }
     }
 
     private suspend fun isUrlReachable(url: String): Boolean = withContext(Dispatchers.IO) {
-        println("Checking reachability for $url")
+        logger.info("Checking reachability for $url")
 
         val client = OkHttpClient()
         val request = Request.Builder()
@@ -77,7 +80,7 @@ class AppRunningMonitor(
                 response.isSuccessful
             }
         } catch (e: IOException) {
-            println(e)
+            logger.debug("URL check failed", e)
             false
         }
     }
