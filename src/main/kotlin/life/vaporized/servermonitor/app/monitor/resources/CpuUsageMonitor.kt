@@ -5,7 +5,7 @@ import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import java.nio.file.FileStore
 import java.nio.file.FileSystems
 
-object DiskUsageMonitor : IResourceMonitor {
+object CpuUsageMonitor : IResourceMonitor {
 
     override val name: String = "Disk usage"
     override val message: String = "Current usage of /"

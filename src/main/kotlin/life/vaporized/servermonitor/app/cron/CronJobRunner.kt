@@ -3,7 +3,7 @@ package life.vaporized.servermonitor.app.cron
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 
-class CronJob(
+class CronJobRunner(
     private val interval: Duration,
 ) {
 

@@ -7,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import life.vaporized.servermonitor.app.DiscordBot
 import life.vaporized.servermonitor.app.cron.CronJobManager
-import life.vaporized.servermonitor.app.cron.Jobs
 import life.vaporized.servermonitor.plugins.configureHTTP
 import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
@@ -37,9 +36,7 @@ fun Application.module() {
     }
 
     val cronManager: CronJobManager by inject()
-    val jobs: Jobs by inject()
-
-    jobs.init(cronManager)
+    cronManager.init()
 
     environment.monitor.subscribe(ApplicationStopping) {
         cronManager.stopAllJobs()

@@ -1,24 +1,34 @@
 package life.vaporized.servermonitor.app.cron
 
+import life.vaporized.servermonitor.app.cron.jobs.EvaluateMonitorsCronJob
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-class CronJobManager {
+class CronJobManager(
+    private val evaluateMonitorsJob: EvaluateMonitorsCronJob,
+) {
 
-    private val jobs = mutableListOf<CronJob>()
+    private val runners = mutableListOf<CronJobRunner>()
 
-    fun addJob(interval: Duration, action: suspend () -> Unit): CronJob {
-        val cronJob = CronJob(interval)
-        cronJob.start(action)
-        jobs.add(cronJob)
-        return cronJob
+    fun init() {
+        addJob(10.seconds, evaluateMonitorsJob)
+    }
+
+    fun addJob(interval: Duration, cronJob: ICronJob): CronJobRunner {
+        val cronJobRunner = CronJobRunner(interval)
+        cronJobRunner.start {
+            cronJob.run()
+        }
+        runners.add(cronJobRunner)
+        return cronJobRunner
     }
 
     fun stopAllJobs() {
-        jobs.forEach { it.stop() }
+        runners.forEach { it.stop() }
     }
 
     fun cancelAllJobs() {
-        jobs.forEach { it.cancelScope() }
-        jobs.clear()
+        runners.forEach { it.cancelScope() }
+        runners.clear()
     }
 }

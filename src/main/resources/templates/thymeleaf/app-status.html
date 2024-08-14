@@ -46,7 +46,7 @@
     <div class="row row-cards" style="margin-top: 8px">
         <div class="col-md-4" th:if="${appStatus.app.url != null}">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body" th:style="${!appStatus.isHttpReachable ? 'background: #ffd7d7' : ''}">
                     <div class="subheader" th:text="${appStatus.isHttpReachable} ? 'HTTP up' : 'HTTP down'"></div>
                     <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
                 </div>
@@ -54,7 +54,7 @@
         </div>
         <div class="col-md-4" th:if="${appStatus.app.url != null}">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body" th:style="${!appStatus.isHttpsReachable ? 'background: #ffd7d7' : ''}">
                     <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTPS up' : 'HTTPS down'"></div>
                     <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
                 </div>
