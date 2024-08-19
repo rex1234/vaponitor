@@ -6,7 +6,7 @@ import oshi.SystemInfo
 
 object RamUsageMonitor : IResourceMonitor {
 
-    const val ID = "RCPU"
+    const val ID = "RRam"
 
     override val name: String = "RAM usage"
     override val message: String = "Current ram usage"

@@ -11,6 +11,7 @@ import io.ktor.server.thymeleaf.*
 import life.vaporized.servermonitor.app.StatusHolder
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import org.koin.ktor.ext.inject
 import java.text.SimpleDateFormat
@@ -31,6 +32,16 @@ fun Application.configureRouting() {
             val lastEval = statusHolder.last
             val lastStatus = lastEval?.list ?: emptyList()
             val resources = statusHolder.getResourceHistory()
+            val diskUsage = lastEval?.list
+                ?.filterIsInstance<MonitorStatus.ResourceStatus>()
+                ?.filter { it.id.startsWith(DiskUsageMonitor.ID) }
+                ?.maxBy { it.total }
+                ?.let {
+                    listOf(it.total / 1024, it.free / 1024)
+                }
+
+            val timeLine = resources.size
+
 
             call.respond(
                 ThymeleafContent(
@@ -38,8 +49,9 @@ fun Application.configureRouting() {
                     model = mapOf(
                         "time" to SimpleDateFormat.getTimeInstance().format(Date(lastEval?.time ?: 0)),
                         "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
-                        "ram" to (resources[RamUsageMonitor.ID] ?: emptyList()),
-                        "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList()),
+                        "ram" to (resources[RamUsageMonitor.ID] ?: emptyList()).map { it.usage },
+                        "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList()).map { it.usage },
+                        "disk" to (diskUsage ?: emptyList()),
                     ),
                 )
             )

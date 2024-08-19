@@ -10,7 +10,7 @@ object CpuUsageMonitor : IResourceMonitor {
 
     private val logger = getLogger()
 
-    const val ID = "RCPU"
+    const val ID = "Rpu"
 
     override val name: String = "Disk usage"
     override val message: String = "Current CPU usage"

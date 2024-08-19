@@ -39,6 +39,9 @@ sealed interface MonitorStatus {
         val total: Float,
     ) : MonitorStatus {
 
+        val free: Float
+            get() = total - current
+
         val usage: Float
             get() = current / total * 100
     }

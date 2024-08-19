@@ -270,7 +270,7 @@
 <script src="./dist/js/tabler.min.js?1692870487" defer></script>
 <script src="./dist/js/demo.min.js?1692870487" defer></script>
 
-<script>
+<script th:inline="javascript">
     // @formatter:off
     document.addEventListener("DOMContentLoaded", function () {
         window.ApexCharts && (new ApexCharts(document.getElementById('chart-completion-tasks-10'), {
@@ -300,10 +300,10 @@
             },
             series: [{
                 name: "RAM",
-                data: [20, 30, 35, 25, 50, 35, 50]
+                data: [[${ram}]],
             },{
                 name: "CPU",
-                data: [10, 10, 70, 30, 60, 0 , 10]
+                data: [[${cpu}]],
             }],
             tooltip: {
                 theme: 'dark'
@@ -331,7 +331,10 @@
             },
             yaxis: {
                 labels: {
-                    padding: 4
+                    padding: 4,
+                    formatter: function(value) {
+                        return Math.floor(value);
+                    }
                 },
                 max: 100,
                 tickAmount: 5,
@@ -376,10 +379,16 @@
             fill: {
                 opacity: 1,
             },
-            series: [70, 30],
+            series: [[${disk}]],
             labels: ["Used", "Free"],
             tooltip: {
-                theme: 'dark'
+                theme: 'dark',
+                y: {
+                    formatter: function(value) {
+                        return value.toFixed(2) + " GB";
+                    }
+                },
+                fillSeriesColor: false,
             },
             grid: {
                 strokeDashArray: 4,
@@ -398,9 +407,6 @@
                     horizontal: 8,
                     vertical: 8
                 },
-            },
-            tooltip: {
-                fillSeriesColor: false
             },
         })).render();
     });
