@@ -1,6 +1,7 @@
 package life.vaporized.servermonitor.app.model
 
 sealed interface MonitorStatus {
+    val id: String
     val name: String
     val description: String
     val isAlive: Boolean
@@ -16,6 +17,9 @@ sealed interface MonitorStatus {
         val isError
             get() = !isRunning || isHttpReachable == false || isHttpsReachable == false
 
+        override val id: String
+            get() = "A${app.name}"
+
         override val name: String
             get() = app.name
 
@@ -27,10 +31,15 @@ sealed interface MonitorStatus {
     }
 
     data class ResourceStatus(
+        override val id: String,
         override val name: String,
         override val description: String,
         override val isAlive: Boolean = true,
         val current: Float,
         val total: Float,
-    ) : MonitorStatus
+    ) : MonitorStatus {
+
+        val usage: Float
+            get() = current / total * 100
+    }
 }

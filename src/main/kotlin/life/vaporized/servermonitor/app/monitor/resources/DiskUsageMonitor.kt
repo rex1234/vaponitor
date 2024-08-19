@@ -7,6 +7,8 @@ import java.nio.file.FileSystems
 
 object DiskUsageMonitor : IResourceMonitor {
 
+    const val ID = "RVolume"
+
     override val name: String = "Disk usage"
     override val message: String = "Current usage of /"
 
@@ -15,6 +17,7 @@ object DiskUsageMonitor : IResourceMonitor {
             .filter { (_, _, total) -> total > 0 }
             .map { (unit, free, total) ->
                 ResourceStatus(
+                    id = "${ID}_$unit",
                     name = name,
                     description = "Disk usage of $unit",
                     current = (total - free).toFloat(),

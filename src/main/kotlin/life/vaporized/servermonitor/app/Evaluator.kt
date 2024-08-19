@@ -8,6 +8,7 @@ import life.vaporized.servermonitor.app.model.AppDefinition
 import life.vaporized.servermonitor.app.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
+import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.util.getLogger
@@ -22,6 +23,7 @@ class Evaluator {
         get() = listOf(
             DiskUsageMonitor,
             RamUsageMonitor,
+            CpuUsageMonitor,
         )
 
     private val dynamicMonitors: List<AppRunningMonitor>
@@ -32,7 +34,7 @@ class Evaluator {
             async {
                 logger.info("${monitor.name}: ${monitor.message}")
                 monitor.evaluate().onEach {
-                    logger.info(it.toString())
+                    logger.debug("Evaluation finished: {}", it.toString())
                 }
             }
         }
@@ -43,7 +45,7 @@ class Evaluator {
         val yamlData = File("appconfig.yaml").readText()
         val services: List<AppDefinition> = Yaml.Default.decodeFromString(yamlData)
         services.forEach {
-            logger.info("Initializing monitor forz: $it")
+            logger.info("Initializing monitor for: $it")
         }
         return services.map(::AppRunningMonitor)
     }

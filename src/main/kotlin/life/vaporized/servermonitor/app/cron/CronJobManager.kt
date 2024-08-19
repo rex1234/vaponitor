@@ -9,12 +9,16 @@ class CronJobManager(
     private val evaluateMonitorsJob: EvaluateMonitorsCronJob,
 ) {
 
+    companion object {
+        val EVALUATE_MONITORS_INTERVAL = 30.seconds
+    }
+
     private val logger = getLogger()
 
     private val runners = mutableListOf<CronJobRunner>()
 
     fun init() {
-        addJob(10.seconds, evaluateMonitorsJob)
+        addJob(EVALUATE_MONITORS_INTERVAL, evaluateMonitorsJob)
     }
 
     fun addJob(interval: Duration, cronJob: ICronJob): CronJobRunner {

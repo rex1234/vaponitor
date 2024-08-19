@@ -1,5 +1,30 @@
 <div th:fragment="statusPage(appStatusList)" class="page-body">
     <div class="container-xl">
+        <div class="row row-cards" style="margin-top: 8px">
+            <div class="col-md-8" style="margin-top: 16px">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <h3 class="card-title">Resource usage</h3>
+                        </div>
+                        <div id="chart-completion-tasks-10"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" style="margin-top: 16px">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <h3 class="card-title">Free space</h3>
+                        </div>
+                        <div id="chart-demo-pie"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xl">
         <div th:each="appStatus : ${appStatusList}">
             <div th:include="app-status :: appReport(${appStatus})"></div>
         </div>
