@@ -9,6 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.thymeleaf.*
 import life.vaporized.servermonitor.app.StatusHolder
+import life.vaporized.servermonitor.app.cron.CronJobManager.Companion.EVALUATE_MONITORS_INTERVAL
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
@@ -40,8 +41,10 @@ fun Application.configureRouting() {
                     listOf(it.total / 1024, it.free / 1024)
                 }
 
-            val timeLine = resources.size
-
+            val start = System.currentTimeMillis()
+            val timeLine = (0..statusHolder.capacity).map { i ->
+                start - i * EVALUATE_MONITORS_INTERVAL.inWholeMilliseconds
+            }.reversed().takeEveryNth(20)
 
             call.respond(
                 ThymeleafContent(
@@ -49,8 +52,11 @@ fun Application.configureRouting() {
                     model = mapOf(
                         "time" to SimpleDateFormat.getTimeInstance().format(Date(lastEval?.time ?: 0)),
                         "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
-                        "ram" to (resources[RamUsageMonitor.ID] ?: emptyList()).map { it.usage },
-                        "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList()).map { it.usage },
+                        "timeline" to timeLine,
+                        "ram" to (resources[RamUsageMonitor.ID] ?: emptyList())
+                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(20),
+                        "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList())
+                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(20),
                         "disk" to (diskUsage ?: emptyList()),
                     ),
                 )
@@ -59,4 +65,15 @@ fun Application.configureRouting() {
 
         staticResources("/", "static")
     }
+}
+
+fun <T> List<T>.prefixWithNulls(totalCapacity: Int): List<T?> {
+    require(totalCapacity >= this.size) { "Total capacity must be greater than or equal to the original list size." }
+    val numberOfNulls = totalCapacity - this.size
+    return List(numberOfNulls) { null } + this
+}
+
+fun <T> List<T>.takeEveryNth(n: Int): List<T> {
+    require(n > 0) { "n must be greater than 0." }
+    return this.filterIndexed { index, _ -> index % n == n - 1 }
 }

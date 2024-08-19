@@ -1,7 +1,7 @@
 package life.vaporized.servermonitor.app.util
 
 class LimitedSizeDeque<T>(
-    private val capacity: Int,
+    val capacity: Int,
 ) {
 
     private val deque = ArrayDeque<T>()

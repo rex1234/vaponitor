@@ -12,6 +12,9 @@ class StatusHolder {
         (24.hours.inWholeSeconds / CronJobManager.EVALUATE_MONITORS_INTERVAL.inWholeSeconds).toInt()
     )
 
+    val capacity
+        get() = history.capacity
+
     val last: MonitorEvaluation?
         get() = history.last
 
