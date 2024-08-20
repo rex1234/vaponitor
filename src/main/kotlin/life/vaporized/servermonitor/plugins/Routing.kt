@@ -44,7 +44,7 @@ fun Application.configureRouting() {
             val start = System.currentTimeMillis()
             val timeLine = (0..statusHolder.capacity).map { i ->
                 start - i * EVALUATE_MONITORS_INTERVAL.inWholeMilliseconds
-            }.reversed().takeEveryNth(20)
+            }.reversed().takeEveryNth(2)
 
             call.respond(
                 ThymeleafContent(
@@ -54,9 +54,9 @@ fun Application.configureRouting() {
                         "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
                         "timeline" to timeLine,
                         "ram" to (resources[RamUsageMonitor.ID] ?: emptyList())
-                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(20),
+                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
                         "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList())
-                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(20),
+                            .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
                         "disk" to (diskUsage ?: emptyList()),
                     ),
                 )

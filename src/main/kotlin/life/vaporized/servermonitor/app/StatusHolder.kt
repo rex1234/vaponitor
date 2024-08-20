@@ -16,7 +16,7 @@ class StatusHolder(
     private val logger = getLogger()
 
     val history: LimitedSizeDeque<MonitorEvaluation> = LimitedSizeDeque(
-        (24.hours.inWholeSeconds / CronJobManager.EVALUATE_MONITORS_INTERVAL.inWholeSeconds).toInt()
+        (4.hours.inWholeSeconds / CronJobManager.EVALUATE_MONITORS_INTERVAL.inWholeSeconds).toInt()
     )
 
     val capacity
