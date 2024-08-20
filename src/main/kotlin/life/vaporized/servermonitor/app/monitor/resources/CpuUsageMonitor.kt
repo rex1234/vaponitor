@@ -26,7 +26,7 @@ object CpuUsageMonitor : IResourceMonitor {
 
     private fun getCpuUsage(): Float {
         try {
-            val command = arrayOf("bash", "-c", "mpstat 1 1 | tail -n 1 | awk '{print 100 - $12}'")
+            val command = arrayOf("bash", "-c", "mpstat | tail -n 1 | awk '{print 100 - $13}'")
             val process = ProcessBuilder(*command).start()
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             val cpuUsage = reader.readText().trim()
