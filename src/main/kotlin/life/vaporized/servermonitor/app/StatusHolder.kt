@@ -51,7 +51,7 @@ class StatusHolder(
         val jsonData = File("data.json").readText()
         val data = statusSerializer.deserialize(jsonData)
 
-        data.reversed().forEach(::add)
+        data.forEach(::add)
 
         logger.info("Restore ${data.size} history entries")
     }.onFailure {
