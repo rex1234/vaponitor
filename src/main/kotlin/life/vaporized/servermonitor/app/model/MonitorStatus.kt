@@ -1,11 +1,15 @@
 package life.vaporized.servermonitor.app.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 sealed interface MonitorStatus {
     val id: String
     val name: String
     val description: String
     val isAlive: Boolean
 
+    @Serializable
     data class AppStatus(
         val app: AppDefinition,
         val isRunning: Boolean,
@@ -30,6 +34,7 @@ sealed interface MonitorStatus {
             get() = isRunning
     }
 
+    @Serializable
     data class ResourceStatus(
         override val id: String,
         override val name: String,

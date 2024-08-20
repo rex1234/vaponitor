@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import life.vaporized.servermonitor.app.DiscordBot
+import life.vaporized.servermonitor.app.StatusHolder
 import life.vaporized.servermonitor.app.cron.CronJobManager
 import life.vaporized.servermonitor.plugins.configureHTTP
 import life.vaporized.servermonitor.plugins.configureRouting
@@ -34,6 +35,9 @@ fun Application.module() {
     scope.launch {
         discordBot.init()
     }
+
+    val statusHolder: StatusHolder by inject()
+    statusHolder.restore()
 
     val cronManager: CronJobManager by inject()
     cronManager.init()

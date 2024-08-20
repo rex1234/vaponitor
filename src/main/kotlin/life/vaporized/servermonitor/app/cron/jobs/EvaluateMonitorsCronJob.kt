@@ -20,6 +20,7 @@ class EvaluateMonitorsCronJob(
         val result = evaluator.evaluate()
         reportApps(result)
         statusHolder.add(result)
+        statusHolder.save()
     }
 
     private fun reportApps(result: MonitorEvaluation) {

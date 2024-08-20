@@ -7,8 +7,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
 }
 
-group = "example.com"
-version = "0.0.1"
+group = "life.vaporized"
+version = "0.9"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
@@ -62,6 +62,7 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:2.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
     implementation("me.jakejmattson:DiscordKt:0.23.4")
     implementation("com.github.oshi:oshi-core:6.4.1")
     implementation("org.slf4j:slf4j-api:2.0.0")
