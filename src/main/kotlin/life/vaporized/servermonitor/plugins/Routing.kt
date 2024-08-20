@@ -38,7 +38,7 @@ fun Application.configureRouting() {
                 ?.filter { it.id.startsWith(DiskUsageMonitor.ID) }
                 ?.maxBy { it.total }
                 ?.let {
-                    listOf(it.total / 1024, it.free / 1024)
+                    listOf(it.current / 1024, it.free / 1024)
                 }
 
             val start = System.currentTimeMillis()
