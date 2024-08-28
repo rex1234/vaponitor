@@ -1,0 +1,12 @@
+:root,
+[data-bs-theme=light] {
+    --card-err-color: #ffdfdf;
+}
+
+[data-bs-theme=dark] {
+    --card-err-color: #590120;
+}
+
+.status-card-error {
+    background-color: var(--card-err-color);
+}

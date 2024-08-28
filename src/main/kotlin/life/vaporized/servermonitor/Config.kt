@@ -19,7 +19,7 @@ object Config {
         get() = dotenv["CHANNEL_ID"] ?: throw IllegalArgumentException("CHANNEL_ID not found in .env")
 
     val monitorInterval
-        get() = 5.seconds
+        get() = 30.seconds
 
     val appMonitorInterval
         get() = 30.seconds

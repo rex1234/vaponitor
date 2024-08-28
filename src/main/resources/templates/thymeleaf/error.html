@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Not Found</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: url('/img/vap_bcg.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .content {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 50px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 96px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 24px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #ff00d5;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #640656;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+    <h1 th:text="${code}"></h1>
+    <p th:text="${message}"></p>
+    <a href="/" class="button">Return Home</a>
+</div>
+</body>
+</html>
