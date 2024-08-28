@@ -8,20 +8,16 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
-import io.github.cdimascio.dotenv.Dotenv
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import life.vaporized.servermonitor.Config
 import life.vaporized.servermonitor.app.util.getLogger
 
 class DiscordBot(
 ) {
     private val logger = getLogger()
 
-    private val dotenv = Dotenv.load()
-
-    private val TOKEN = dotenv["TOKEN"] ?: throw IllegalArgumentException("TOKEN not found in .env")
-    private val CHANNEL_ID = dotenv["CHANNEL_ID"] ?: throw IllegalArgumentException("CHANNEL_ID not found in .env")
 
     private lateinit var kord: Kord
 
@@ -30,7 +26,7 @@ class DiscordBot(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     suspend fun init() {
-        kord = Kord(TOKEN)
+        kord = Kord(Config.discordToken)
 
         registerIncomingMessageListener(kord)
 
@@ -63,7 +59,7 @@ class DiscordBot(
 
     fun sendMessage(message: String) = scope.launch {
         if (isReady) {
-            val channel = kord.getChannelOf<TextChannel>(Snowflake(CHANNEL_ID))
+            val channel = kord.getChannelOf<TextChannel>(Snowflake(Config.discordChannel))
             channel?.createMessage(message)
         }
     }

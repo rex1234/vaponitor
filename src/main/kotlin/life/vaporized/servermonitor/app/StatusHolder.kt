@@ -1,13 +1,12 @@
 package life.vaporized.servermonitor.app
 
-import life.vaporized.servermonitor.app.cron.CronJobManager
+import life.vaporized.servermonitor.Config
 import life.vaporized.servermonitor.app.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.LimitedSizeDeque
 import life.vaporized.servermonitor.app.util.StatusSerializer
 import life.vaporized.servermonitor.app.util.getLogger
 import java.io.File
-import kotlin.time.Duration.Companion.hours
 
 class StatusHolder(
     private val statusSerializer: StatusSerializer,
@@ -16,7 +15,7 @@ class StatusHolder(
     private val logger = getLogger()
 
     val history: LimitedSizeDeque<MonitorEvaluation> = LimitedSizeDeque(
-        (4.hours.inWholeSeconds / CronJobManager.EVALUATE_MONITORS_INTERVAL.inWholeSeconds).toInt()
+        (Config.historyDuration.inWholeSeconds / Config.monitorInterval.inWholeSeconds).toInt()
     )
 
     val capacity

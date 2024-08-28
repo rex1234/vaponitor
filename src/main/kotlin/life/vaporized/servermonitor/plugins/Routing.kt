@@ -8,8 +8,8 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.thymeleaf.*
+import life.vaporized.servermonitor.Config
 import life.vaporized.servermonitor.app.StatusHolder
-import life.vaporized.servermonitor.app.cron.CronJobManager.Companion.EVALUATE_MONITORS_INTERVAL
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
@@ -43,7 +43,7 @@ fun Application.configureRouting() {
 
             val start = System.currentTimeMillis()
             val timeLine = (0..statusHolder.capacity).map { i ->
-                start - i * EVALUATE_MONITORS_INTERVAL.inWholeMilliseconds
+                start - i * Config.monitorInterval.inWholeMilliseconds
             }.reversed().takeEveryNth(2)
 
             call.respond(
