@@ -54,7 +54,7 @@
         </div>
         <div class="col-md-4" th:if="${appStatus.app.url != null}">
             <div class="card">
-                <div class="card-body status-card-error"
+                <div class="card-body"
                      th:classappend="${!appStatus.isAlive ? 'status-card-error' : ''}">
                     <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTP up' : 'HTTPS down'"></div>
                     <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
