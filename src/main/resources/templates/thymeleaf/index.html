@@ -203,9 +203,9 @@
                         <div class="mb-3">
                             <label class="form-label">Report url</label>
                             <div class="input-group input-group-flat">
-                    <span class="input-group-text">
-                      https://tabler.io/reports/
-                    </span>
+                                <span class="input-group-text">
+                                  https://tabler.io/reports/
+                                </span>
                                 <input type="text" class="form-control ps-0" value="report-01" autocomplete="off">
                             </div>
                         </div>
@@ -342,57 +342,6 @@
             },
             labels: [[${timeline}]],
             colors: [tabler.getColor("primary"), tabler.getColor("red")],
-            legend: {
-                show: true,
-                position: 'bottom',
-                offsetY: 12,
-                markers: {
-                    width: 10,
-                    height: 10,
-                    radius: 100,
-                },
-                itemMargin: {
-                    horizontal: 8,
-                    vertical: 8
-                },
-            },
-        })).render();
-    });
-    // @formatter:on
-</script>
-<script>
-    // @formatter:off
-    document.addEventListener("DOMContentLoaded", function () {
-        window.ApexCharts && (new ApexCharts(document.getElementById('chart-demo-pie'), {
-            chart: {
-                type: "donut",
-                fontFamily: 'inherit',
-                height: 240,
-                sparkline: {
-                    enabled: true
-                },
-                animations: {
-                    enabled: false
-                },
-            },
-            fill: {
-                opacity: 1,
-            },
-            series: [[${disk}]],
-            labels: ["Used", "Free"],
-            tooltip: {
-                theme: 'dark',
-                y: {
-                    formatter: function(value) {
-                        return value.toFixed(2) + " GB";
-                    }
-                },
-                fillSeriesColor: false,
-            },
-            grid: {
-                strokeDashArray: 4,
-            },
-            colors: [tabler.getColor("red"), tabler.getColor("primary")],
             legend: {
                 show: true,
                 position: 'bottom',
