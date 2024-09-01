@@ -23,10 +23,6 @@ fun Routing.indexRoute(
         val diskUsage = lastEval?.list
             ?.filterIsInstance<MonitorStatus.ResourceStatus>()
             ?.filter { it.id.startsWith(DiskUsageMonitor.ID) }
-            ?.maxBy { it.total }
-            ?.let {
-                listOf(it.current / 1024, it.free / 1024)
-            }
 
         val start = System.currentTimeMillis()
         val timeLine = (0..statusHolder.capacity).map { i ->
@@ -44,7 +40,7 @@ fun Routing.indexRoute(
                         .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
                     "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList())
                         .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
-                    "disk" to (diskUsage ?: emptyList()),
+                    "volumes" to (diskUsage ?: emptyList()),
                 ),
             )
         )

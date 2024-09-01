@@ -1,4 +1,4 @@
-<div th:fragment="statusPage(appStatusList)" class="page-body">
+<div th:fragment="statusPage(appStatusList, volumes)" class="page-body">
     <div class="container-xl">
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-7" style="margin-top: 16px">
@@ -35,38 +35,21 @@
                             <thead>
                             <tr>
                                 <th>Volume</th>
-                                <th>Total</th>
                                 <th>Free</th>
+                                <th>Total</th>
                                 <th>%</th>
                                 <th colspan="2"></th>
                             </tr>
                             </thead>
-                            <tr>
-                                <td>/</td>
-                                <td class="text-secondary">4,896</td>
-                                <td class="text-secondary">3,654</td>
-                                <td class="text-secondary">82.54%</td>
+                            <tr th:each="volume : ${volumes}">
+                                <td th:text="${volume.description}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.free, 0, 'COMMA', 2, 'POINT') + ' GB'}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.total, 0, 'COMMA', 2, 'POINT') + ' GB'}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.usage, 0, 'COMMA', 2, 'POINT')+ '%'}"></td>
                                 <td class="text-end w-1">
-                                    <div class="chart-sparkline chart-sparkline-sm" id="sparkline-bounce-rate-1"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>/home</td>
-                                <td class="text-secondary">3,652</td>
-                                <td class="text-secondary">3,215</td>
-                                <td class="text-secondary">76.29%</td>
-                                <td class="text-end w-1">
-                                    <div class="chart-sparkline chart-sparkline-sm" id="sparkline-bounce-rate-2"></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>/mnt/sd1</td>
-                                <td class="text-secondary">3,256</td>
-                                <td class="text-secondary">2,865</td>
-                                <td class="text-secondary">72.65%</td>
-                                <td class="text-end w-1">
-                                    <div class="chart-sparkline chart-sparkline-sm" id="sparkline-bounce-rate-3"></div>
-                                </td>
                             </tr>
                         </table>
                     </div>

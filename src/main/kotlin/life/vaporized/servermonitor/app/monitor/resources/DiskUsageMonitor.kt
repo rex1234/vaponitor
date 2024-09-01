@@ -19,18 +19,19 @@ object DiskUsageMonitor : IResourceMonitor {
                 ResourceStatus(
                     id = "${ID}_$unit",
                     name = name,
-                    description = "Disk usage of $unit",
-                    current = (total - free).toFloat(),
-                    total = total.toFloat(),
+                    description = unit,
+                    current = total - free,
+                    total = total,
                 )
             }
 
-    private fun getDiskUsage(): List<Triple<String, Long, Long>> {
-        val fileStores = mutableListOf<Triple<String, Long, Long>>()
-        for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
-            val totalSpace = fileStore.totalSpace / (1024 * 1024)
-            val usableSpace = fileStore.usableSpace / (1024 * 1024)
-            fileStores.add(Triple(fileStore.toString(), usableSpace, totalSpace))
+    private fun getDiskUsage(): List<Triple<String, Float, Float>> {
+        val fileStores = buildList {
+            for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
+                val totalSpace = fileStore.totalSpace / (1024 * 1024 * 1024).toFloat()
+                val usableSpace = fileStore.usableSpace / (1024 * 1024 * 1024).toFloat()
+                add(Triple(fileStore.toString(), usableSpace, totalSpace))
+            }
         }
         return fileStores
     }
