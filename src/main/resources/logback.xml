@@ -8,8 +8,9 @@
     <root level="trace">
         <appender-ref ref="STDOUT"/>
     </root>
-    <logger name="org.eclipse.jetty" level="ERROR"/>
-    <logger name="io.netty" level="ERROR"/>
-    <logger name="io.ktor" level="ERROR"/>
+    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+    <logger name="io.ktor" level="INFO"/>
+    <logger name="org.thymeleaf" level="INFO"/>
     <logger name="dev.kord" level="INFO"/>
 </configuration>

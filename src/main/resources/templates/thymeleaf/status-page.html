@@ -26,7 +26,7 @@
 
     <div class="container-xl">
         <div th:each="appStatus : ${appStatusList}">
-            <div th:include="app-status :: appReport(${appStatus})"></div>
+            <div th:insert="~{app-status :: appReport(${appStatus})}"></div>
         </div>
     </div>
 </div>

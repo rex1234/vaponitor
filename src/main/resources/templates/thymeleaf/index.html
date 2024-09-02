@@ -120,7 +120,7 @@
             </div>
         </div>
 
-        <div th:include="status-page :: statusPage(${appStatusList})" class="container">
+        <div th:insert="~{status-page :: statusPage(${appStatusList})}" class="container">
         </div>
 
         <footer class="footer footer-transparent d-print-none">

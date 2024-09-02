@@ -27,6 +27,7 @@ object DiskUsageMonitor : IResourceMonitor {
                     total = total.toFloat(),
                 )
             }
+            .sortedByDescending { it.total }
 
     private fun getDiskUsage(): List<Triple<String, Long, Long>> {
         val fileStores = mutableListOf<Triple<String, Long, Long>>()
