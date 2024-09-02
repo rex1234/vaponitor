@@ -2,10 +2,13 @@ package life.vaporized.servermonitor.app.monitor.resources
 
 import life.vaporized.servermonitor.app.model.MonitorStatus.ResourceStatus
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
+import life.vaporized.servermonitor.app.util.getLogger
 import java.nio.file.FileStore
 import java.nio.file.FileSystems
 
 object DiskUsageMonitor : IResourceMonitor {
+
+    private val logger = getLogger()
 
     const val ID = "RVolume"
 
@@ -28,9 +31,13 @@ object DiskUsageMonitor : IResourceMonitor {
     private fun getDiskUsage(): List<Triple<String, Long, Long>> {
         val fileStores = mutableListOf<Triple<String, Long, Long>>()
         for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
-            val totalSpace = fileStore.totalSpace / (1024 * 1024)
-            val usableSpace = fileStore.usableSpace / (1024 * 1024)
-            fileStores.add(Triple(fileStore.toString(), usableSpace, totalSpace))
+            try {
+                val totalSpace = fileStore.totalSpace / (1024 * 1024)
+                val usableSpace = fileStore.usableSpace / (1024 * 1024)
+                fileStores.add(Triple(fileStore.toString(), usableSpace, totalSpace))
+            } catch (e: Exception) {
+                logger.error("Failed to get disk usage", e)
+            }
         }
         return fileStores
     }
