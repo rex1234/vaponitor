@@ -4,8 +4,8 @@ import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 
-private const val EMOJI_GREEN_DOT = "\uD83D\uDFE2"
-private const val EMOJI_RED_DOT = "\uD83D\uDD34"
+private const val EMOJI_GREEN_DOT = "✅"
+private const val EMOJI_RED_DOT = "❌"
 
 class DiscordMonitorReporter(
     private val discordBot: DiscordBot,
@@ -21,8 +21,8 @@ class DiscordMonitorReporter(
 
         val eval = statusRepository.history.last(2)
 
-        val currentAppEval = eval.first()
-        val previousAppEval = eval.last()
+        val currentAppEval = eval.last()
+        val previousAppEval = eval.first()
 
         currentAppEval.list
             .filterIsInstance<MonitorStatus.AppStatus>()
@@ -31,6 +31,10 @@ class DiscordMonitorReporter(
                 val previousStatus = previousAppEval.list
                     .filterIsInstance<MonitorStatus.AppStatus>()
                     .firstOrNull { it.id == currentStatus.id } ?: return@forEach
+
+                if (currentStatus == previousStatus) {
+                    return@forEach
+                }
 
                 if (currentStatus.isError) {
                     logger.info("Reporting error for $app on discord")
@@ -46,7 +50,7 @@ class DiscordMonitorReporter(
         previousAppStatus: MonitorStatus.AppStatus,
     ) = (appStatus.isRunning && !previousAppStatus.isRunning) ||
             (appStatus.isHttpReachable == true && previousAppStatus.isHttpReachable == false) ||
-            (appStatus.isHttpReachable == false && previousAppStatus.isHttpReachable == true)
+            (appStatus.isHttpsReachable == true && previousAppStatus.isHttpsReachable == false)
 
     private fun errorMessage(
         appStatus: MonitorStatus.AppStatus,
@@ -76,7 +80,7 @@ class DiscordMonitorReporter(
             appendLine("    $EMOJI_RED_DOT HTTP ping failed")
         }
 
-        if (appStatus.isHttpReachable == false && previousAppStatus.isHttpReachable == true) {
+        if (appStatus.isHttpsReachable == true && previousAppStatus.isHttpsReachable == false) {
             appendLine("    $EMOJI_GREEN_DOT HTTPS ping success")
         } else if (appStatus.isHttpReachable == false) {
             appendLine("    $EMOJI_RED_DOT HTTPS ping failed")
