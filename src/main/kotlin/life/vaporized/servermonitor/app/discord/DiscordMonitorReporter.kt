@@ -65,21 +65,21 @@ class DiscordMonitorReporter(
         previousAppStatus: MonitorStatus.AppStatus,
     ) {
         if (appStatus.isRunning && !previousAppStatus.isRunning) {
-            appendLine("$EMOJI_GREEN_DOT Process is now running")
+            appendLine("    $EMOJI_GREEN_DOT Process is now running")
         } else if (!appStatus.isRunning) {
-            appendLine("$EMOJI_RED_DOT Process is not running")
+            appendLine("    $EMOJI_RED_DOT Process is not running")
         }
 
         if (appStatus.isHttpReachable == true && previousAppStatus.isHttpReachable == false) {
-            appendLine("$EMOJI_GREEN_DOT HTTP ping success")
+            appendLine("    $EMOJI_GREEN_DOT HTTP ping success")
         } else if (appStatus.isHttpReachable == false) {
-            appendLine("$EMOJI_RED_DOT HTTP ping failed")
+            appendLine("    $EMOJI_RED_DOT HTTP ping failed")
         }
 
         if (appStatus.isHttpReachable == false && previousAppStatus.isHttpReachable == true) {
-            appendLine("$EMOJI_GREEN_DOT HTTPS ping success")
+            appendLine("    $EMOJI_GREEN_DOT HTTPS ping success")
         } else if (appStatus.isHttpReachable == false) {
-            appendLine("$EMOJI_RED_DOT HTTPS ping failed")
+            appendLine("    $EMOJI_RED_DOT HTTPS ping failed")
         }
     }
 }
