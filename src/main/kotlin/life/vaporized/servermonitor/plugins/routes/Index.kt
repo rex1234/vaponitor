@@ -5,7 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.thymeleaf.*
 import life.vaporized.servermonitor.Config
-import life.vaporized.servermonitor.app.StatusHolder
+import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
@@ -14,12 +14,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun Routing.indexRoute(
-    statusHolder: StatusHolder
+    statusRepository: StatusRepository
 ) {
     get("/") {
-        val lastEval = statusHolder.last
+        val lastEval = statusRepository.last
         val lastStatus = lastEval?.list ?: emptyList()
-        val resources = statusHolder.getResourceHistory()
+        val resources = statusRepository.getResourceHistory()
         val diskUsage = lastEval?.list
             ?.filterIsInstance<MonitorStatus.ResourceStatus>()
             ?.filter { it.id.startsWith(DiskUsageMonitor.ID) }
@@ -29,7 +29,7 @@ fun Routing.indexRoute(
             }
 
         val start = System.currentTimeMillis()
-        val timeLine = (0..statusHolder.capacity).map { i ->
+        val timeLine = (0..statusRepository.capacity).map { i ->
             start - i * Config.monitorInterval.inWholeMilliseconds
         }.reversed().takeEveryNth(2)
 
@@ -41,9 +41,9 @@ fun Routing.indexRoute(
                     "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
                     "timeline" to timeLine,
                     "ram" to (resources[RamUsageMonitor.ID] ?: emptyList())
-                        .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
+                        .map { it.usage }.prefixWithNulls(statusRepository.capacity).takeEveryNth(2),
                     "cpu" to (resources[CpuUsageMonitor.ID] ?: emptyList())
-                        .map { it.usage }.prefixWithNulls(statusHolder.capacity).takeEveryNth(2),
+                        .map { it.usage }.prefixWithNulls(statusRepository.capacity).takeEveryNth(2),
                     "disk" to (diskUsage ?: emptyList()),
                 ),
             )

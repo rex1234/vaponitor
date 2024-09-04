@@ -6,6 +6,9 @@ class LimitedSizeDeque<T>(
 
     private val deque = ArrayDeque<T>()
 
+    val size
+        get() = deque.size
+
     val elements
         get() = deque.toList()
 
@@ -18,6 +21,8 @@ class LimitedSizeDeque<T>(
         }
         deque.addLast(element)
     }
+
+    fun last(n: Int): List<T> = deque.takeLast(2)
 
     override fun toString(): String = deque.toString()
 }

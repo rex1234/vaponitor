@@ -1,4 +1,4 @@
-package life.vaporized.servermonitor.app
+package life.vaporized.servermonitor.app.discord
 
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord

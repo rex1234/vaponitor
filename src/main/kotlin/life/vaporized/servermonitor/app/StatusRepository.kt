@@ -8,7 +8,7 @@ import life.vaporized.servermonitor.app.util.StatusSerializer
 import life.vaporized.servermonitor.app.util.getLogger
 import java.io.File
 
-class StatusHolder(
+class StatusRepository(
     private val statusSerializer: StatusSerializer,
 ) {
 

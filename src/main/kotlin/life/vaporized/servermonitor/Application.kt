@@ -5,9 +5,9 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import life.vaporized.servermonitor.app.DiscordBot
-import life.vaporized.servermonitor.app.StatusHolder
+import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.cron.CronJobManager
+import life.vaporized.servermonitor.app.discord.DiscordBot
 import life.vaporized.servermonitor.plugins.configureHTTP
 import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
@@ -36,8 +36,8 @@ fun Application.module() {
         discordBot.init()
     }
 
-    val statusHolder: StatusHolder by inject()
-    statusHolder.restore()
+    val statusRepository: StatusRepository by inject()
+    statusRepository.restore()
 
     val cronManager: CronJobManager by inject()
     cronManager.init()

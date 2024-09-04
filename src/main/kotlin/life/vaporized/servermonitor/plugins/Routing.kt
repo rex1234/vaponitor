@@ -6,14 +6,14 @@ import io.ktor.server.http.content.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.resources.*
 import io.ktor.server.routing.*
-import life.vaporized.servermonitor.app.StatusHolder
+import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.plugins.routes.errorRoute
 import life.vaporized.servermonitor.plugins.routes.indexRoute
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
 
-    val statusHolder: StatusHolder by inject()
+    val statusRepository: StatusRepository by inject()
 
     install(Resources)
     install(StatusPages) {
@@ -25,7 +25,7 @@ fun Application.configureRouting() {
         }
     }
     routing {
-        indexRoute(statusHolder)
+        indexRoute(statusRepository)
         staticResources("/", "static")
     }
 }
