@@ -22,26 +22,27 @@ object DiskUsageMonitor : IResourceMonitor {
                 ResourceStatus(
                     id = "${ID}_$unit",
                     name = name,
-                    description = "Disk usage of $unit",
-                    current = (total - free).toFloat(),
-                    total = total.toFloat(),
+                    description = unit,
+                    current = total - free,
+                    total = total,
                 )
             }
             .sortedByDescending { it.total }
 
-    private fun getDiskUsage(): List<Triple<String, Long, Long>> {
-        val fileStores = mutableListOf<Triple<String, Long, Long>>()
-        for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
-            if (fileStore.type().equals("tmpfs", ignoreCase = true)) {
-                continue
-            }
+    private fun getDiskUsage(): List<Triple<String, Float, Float>> {
+        val fileStores = buildList {
+            for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
+                if (fileStore.type().equals("tmpfs", ignoreCase = true)) {
+                    continue
+                }
 
-            try {
-                val totalSpace = fileStore.totalSpace / (1024 * 1024)
-                val usableSpace = fileStore.usableSpace / (1024 * 1024)
-                fileStores.add(Triple(fileStore.toString(), usableSpace, totalSpace))
-            } catch (e: Exception) {
-                logger.error("Failed to get disk usage", e)
+                try {
+                    val totalSpace = fileStore.totalSpace / (1024 * 1024 * 1024).toFloat()
+                    val usableSpace = fileStore.usableSpace / (1024 * 1024 * 1024).toFloat()
+                    add(Triple(fileStore.toString(), usableSpace, totalSpace))
+                } catch (e: Exception) {
+                    logger.error("Failed to get disk usage", e)
+                }
             }
         }
         return fileStores
