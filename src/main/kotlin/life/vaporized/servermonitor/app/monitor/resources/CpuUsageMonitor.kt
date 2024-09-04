@@ -10,14 +10,13 @@ object CpuUsageMonitor : IResourceMonitor {
 
     private val logger = getLogger()
 
-    const val ID = "Rpu"
-
+    override val id = "RCpu"
     override val name: String = "Disk usage"
     override val message: String = "Current CPU usage"
 
     override suspend fun evaluate(): List<ResourceStatus> =
         ResourceStatus(
-            id = ID,
+            id = id,
             name = name,
             description = message,
             current = getCpuUsage(),

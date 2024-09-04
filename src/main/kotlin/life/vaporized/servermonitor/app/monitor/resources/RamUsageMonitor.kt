@@ -6,8 +6,7 @@ import oshi.SystemInfo
 
 object RamUsageMonitor : IResourceMonitor {
 
-    const val ID = "RRam"
-
+    override val id = "RRam"
     override val name: String = "RAM usage"
     override val message: String = "Current ram usage"
 
@@ -17,7 +16,7 @@ object RamUsageMonitor : IResourceMonitor {
         val free = memory.available / (1024 * 1024)
 
         return MonitorStatus.ResourceStatus(
-            id = ID,
+            id = id,
             name = name,
             description = message,
             current = (total - free).toFloat(),
