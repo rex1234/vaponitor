@@ -10,8 +10,7 @@ object DiskUsageMonitor : IResourceMonitor {
 
     private val logger = getLogger()
 
-    const val ID = "RVolume"
-
+    override val id = "RVolume"
     override val name: String = "Disk usage"
     override val message: String = "Current usage of /"
 
@@ -20,7 +19,7 @@ object DiskUsageMonitor : IResourceMonitor {
             .filter { (_, _, total) -> total > 0 }
             .map { (unit, free, total) ->
                 ResourceStatus(
-                    id = "${ID}_$unit",
+                    id = "${id}_$unit",
                     name = name,
                     description = unit,
                     current = total - free,
