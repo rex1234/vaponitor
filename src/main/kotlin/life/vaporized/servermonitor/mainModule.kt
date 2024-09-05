@@ -1,5 +1,6 @@
 import life.vaporized.servermonitor.app.Evaluator
 import life.vaporized.servermonitor.app.StatusRepository
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.cron.CronJobManager
 import life.vaporized.servermonitor.app.cron.jobs.EvaluateMonitorsCronJob
 import life.vaporized.servermonitor.app.discord.DiscordBot
@@ -13,6 +14,7 @@ val mainModule = module {
     singleOf(::DiscordBot)
     singleOf(::CronJobManager)
     singleOf(::StatusRepository)
+    singleOf(::MonitorConfigProvider)
 
     factoryOf(::DiscordMonitorReporter)
     factoryOf(::StatusSerializer)

@@ -1,8 +1,9 @@
 package life.vaporized.servermonitor.app
 
-import life.vaporized.servermonitor.Config
-import life.vaporized.servermonitor.app.model.MonitorEvaluation
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.config.EnvConfig
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
+import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.LimitedSizeDeque
 import life.vaporized.servermonitor.app.util.StatusSerializer
 import life.vaporized.servermonitor.app.util.getLogger
@@ -10,12 +11,13 @@ import java.io.File
 
 class StatusRepository(
     private val statusSerializer: StatusSerializer,
-) {
+    private val monitorConfig: MonitorConfigProvider,
+    ) {
 
     private val logger = getLogger()
 
     val history: LimitedSizeDeque<MonitorEvaluation> = LimitedSizeDeque(
-        (Config.historyDuration.inWholeSeconds / Config.monitorInterval.inWholeSeconds).toInt()
+        (monitorConfig.historyDuration.inWholeSeconds / monitorConfig.appMonitorInterval.inWholeSeconds).toInt()
     )
 
     val capacity

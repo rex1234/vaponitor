@@ -1,7 +1,7 @@
 package life.vaporized.servermonitor.app.monitor.resources
 
-import life.vaporized.servermonitor.app.model.MonitorStatus
-import life.vaporized.servermonitor.app.model.NumberResourceCommandDefinition
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
+import life.vaporized.servermonitor.app.monitor.model.NumberResourceDefinition
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.util.getLogger
 import java.io.BufferedReader
@@ -10,8 +10,8 @@ import java.io.InputStreamReader
 /**
  * Executes a command yielding int value that can be shown in a graph
  */
-class BashResourceMonitor(
-    val command: NumberResourceCommandDefinition,
+class BashNumberResourceMonitor(
+    val command: NumberResourceDefinition,
 ) : IResourceMonitor {
 
     private val logger = getLogger()

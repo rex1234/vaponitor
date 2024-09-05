@@ -1,6 +1,6 @@
 package life.vaporized.servermonitor.app.monitor.resources
 
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import oshi.SystemInfo
 

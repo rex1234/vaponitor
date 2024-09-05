@@ -1,0 +1,19 @@
+app_monitor_interval: 60
+resource_monitor_interval: 15
+apps:
+  - name: MyServer
+    description: "https://myserver.net"
+    command: systemctl is-active my-server
+    url: myserver.net
+resources:
+  enabled:
+    - "RCpu"
+    - "RRam"
+    - "RDisk"
+  custom:
+    - name: "CPU temperature"
+      command: "temp -v"
+    - name: "Weather"
+      command: "curl https://weather.com/brno/"
+
+

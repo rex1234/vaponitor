@@ -1,6 +1,6 @@
 package life.vaporized.servermonitor.app.monitor.resources
 
-import life.vaporized.servermonitor.app.model.MonitorStatus.ResourceStatus
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus.ResourceStatus
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.util.getLogger
 import java.io.BufferedReader

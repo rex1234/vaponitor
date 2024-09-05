@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import life.vaporized.servermonitor.app.model.AppDefinition
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.monitor.model.AppDefinition
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -22,6 +22,8 @@ class AppRunningMonitor(
 
     override val message: String
         get() = app.url ?: ""
+
+    override val id = name
 
     override suspend fun evaluate(): List<MonitorStatus.AppStatus> = coroutineScope {
         val isProcessRunning = async {

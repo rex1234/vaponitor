@@ -1,7 +1,7 @@
 package life.vaporized.servermonitor.app.discord
 
 import life.vaporized.servermonitor.app.StatusRepository
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 
 private const val EMOJI_GREEN_DOT = "✅"
