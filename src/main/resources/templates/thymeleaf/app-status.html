@@ -18,7 +18,7 @@
                         <span class="text-red" th:if="${appStatus.isError}">Down</span>
                     </li>
                     <li class="list-inline-item">
-                        <a th:if="${appStatus.app.url != null}" th:href="${appStatus.app.description}"
+                        <a th:if="${appStatus.app.url != null}" th:href="${appStatus.app.url}"
                            th:text="${appStatus.app.description}"></a>
                         <span th:if="${appStatus.app.url == null}" th:text="${appStatus.app.description}"></span>
                     </li>

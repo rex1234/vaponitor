@@ -1,5 +1,0 @@
-- apps:
-    - name: MyServer
-      description: "https://myserver.net"
-      command: systemctl is-active my-server
-      url: myserver.net

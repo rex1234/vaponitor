@@ -1,19 +1,29 @@
-app_monitor_interval: 60
-resource_monitor_interval: 15
-apps:
-  - name: MyServer
-    description: "https://myserver.net"
-    command: systemctl is-active my-server
-    url: myserver.net
+app_monitor_interval_s: 60
+resource_monitor_interval_s: 15
+history_duration_m: 1660
+
 resources:
   enabled:
     - "RCpu"
     - "RRam"
     - "RDisk"
-  custom:
+  number:
     - name: "CPU temperature"
+      description: "Current CPU temperature"
       command: "temp -v"
     - name: "Weather"
+      description: "Weather in Brno"
       command: "curl https://weather.com/brno/"
 
+apps:
+  - name: CallingStation
+    description: "https://callingstation.net"
+    url: callingstation.net
 
+  - name: Raspberry
+    description: RP
+    url: 192.168.0.108:8080
+
+  - name: Test fail
+    description: CS
+    url: devcdfa.vaporized.life

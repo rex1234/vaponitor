@@ -5,6 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.thymeleaf.*
 import life.vaporized.servermonitor.app.StatusRepository
+import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
@@ -34,6 +35,7 @@ fun Routing.indexRoute(
             ThymeleafContent(
                 template = "index",
                 model = mapOf(
+                    "appName" to EnvConfig.appName,
                     "time" to SimpleDateFormat.getTimeInstance().format(Date(lastEval?.time ?: 0)),
                     "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
                     "timeline" to timeLine,
