@@ -1,9 +1,11 @@
 package life.vaporized.servermonitor.plugins.routes
 
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.thymeleaf.*
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.thymeleaf.ThymeleafContent
+import kotlin.time.Duration
 import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
@@ -14,7 +16,6 @@ import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.time.Duration
 
 const val TIMELINE_POINTS = 200
 

@@ -22,7 +22,7 @@ class LimitedSizeDeque<T>(
         deque.addLast(element)
     }
 
-    fun last(n: Int): List<T> = deque.takeLast(2)
+    fun last(n: Int): List<T> = deque.takeLast(n)
 
     override fun toString(): String = deque.toString()
 }

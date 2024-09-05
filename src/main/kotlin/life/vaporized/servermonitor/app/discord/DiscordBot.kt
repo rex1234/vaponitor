@@ -15,8 +15,8 @@ import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.util.getLogger
 
 class DiscordBot {
-    private val logger = getLogger()
 
+    private val logger = getLogger()
 
     private lateinit var kord: Kord
 

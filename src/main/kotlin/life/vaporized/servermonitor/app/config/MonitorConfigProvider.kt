@@ -1,5 +1,7 @@
 package life.vaporized.servermonitor.app.config
 
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.decodeFromString
 import life.vaporized.servermonitor.app.config.model.MonitorConfig
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
@@ -7,8 +9,6 @@ import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import net.mamoe.yamlkt.Yaml
 import java.io.File
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 class MonitorConfigProvider {
 

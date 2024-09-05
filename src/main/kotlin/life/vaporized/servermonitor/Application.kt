@@ -1,7 +1,8 @@
 package life.vaporized.servermonitor
 
-import io.ktor.server.application.*
-import io.ktor.server.netty.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.netty.EngineMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +24,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     koin {
-        //printLogger()
+        // printLogger()
         modules(mainModule)
     }
 
@@ -47,5 +48,3 @@ fun Application.module() {
         cronManager.cancelAllJobs()
     }
 }
-
-

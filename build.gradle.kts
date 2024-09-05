@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "2.0.0"
     id("io.ktor.plugin") version "2.3.12"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.1"
 }
 
 group = "life.vaporized"
@@ -67,4 +68,13 @@ dependencies {
     implementation("com.github.oshi:oshi-core:6.4.1")
     implementation("org.slf4j:slf4j-api:2.0.0")
     implementation("ch.qos.logback:logback-classic:1.4.12")
+
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
+}
+
+detekt {
+    buildUponDefaultConfig = true // Use default rules
+    allRules = false // Disable all rules (override per file)
+    config = files("$rootDir/detekt-config.yml") // Custom configuration file (optional)
+    baseline = file("$rootDir/detekt-baseline.xml") // Ignore existing issues file (optional)
 }

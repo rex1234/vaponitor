@@ -1,7 +1,8 @@
 package life.vaporized.servermonitor.plugins
 
-import io.ktor.server.application.*
-import io.ktor.server.thymeleaf.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.thymeleaf.Thymeleaf
 import org.thymeleaf.templateresolver.FileTemplateResolver
 
 fun Application.configureTemplating() {
@@ -18,6 +19,5 @@ fun Application.configureTemplating() {
                 suffix = ".html"
             }
         )
-
     }
 }

@@ -1,9 +1,9 @@
 package life.vaporized.servermonitor.app.cron
 
+import kotlin.time.Duration
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.cron.jobs.EvaluateMonitorsCronJob
 import life.vaporized.servermonitor.app.util.getLogger
-import kotlin.time.Duration
 
 class CronJobManager(
     private val evaluateMonitorsJob: EvaluateMonitorsCronJob,
