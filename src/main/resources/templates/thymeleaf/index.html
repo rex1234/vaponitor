@@ -319,6 +319,9 @@
             xaxis: {
                 labels: {
                     padding: 0,
+                    formatter: function(value) {
+                        return new Date(value).toLocaleTimeString();
+                    }
                 },
                 tooltip: {
                     enabled: false

@@ -45,7 +45,7 @@ class MonitorConfigProvider {
     val numberResourceDefinitions
         get() = monitorConfig.resources?.numberResourceDefinitions ?: emptyList()
 
-    val enabledResources
+    val enabledResourceMonitors
         get() = RESOURCE_MONITORS.filter {
             it.id in (monitorConfig.resources?.enabled ?: emptyList())
         }
