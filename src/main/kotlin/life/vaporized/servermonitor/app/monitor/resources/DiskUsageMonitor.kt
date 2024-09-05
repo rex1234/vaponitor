@@ -33,14 +33,14 @@ object DiskUsageMonitor : IResourceMonitor {
     private fun getDiskUsage(): List<Triple<String, Float, Float>> {
         val fileStores = buildList {
             for (fileStore: FileStore in FileSystems.getDefault().fileStores) {
-                if (fileStore.totalSpace < SIZE_THRESHOLD) {
-                    continue
-                }
-                if (fileStore.type().equals("tmpfs", ignoreCase = true)) {
-                    continue
-                }
-
                 try {
+                    if (fileStore.totalSpace < SIZE_THRESHOLD) {
+                        continue
+                    }
+                    if (fileStore.type().equals("tmpfs", ignoreCase = true)) {
+                        continue
+                    }
+
                     val totalSpace = fileStore.totalSpace / (1024 * 1024 * 1024).toFloat()
                     val usableSpace = fileStore.usableSpace / (1024 * 1024 * 1024).toFloat()
                     add(Triple(fileStore.toString(), usableSpace, totalSpace))
