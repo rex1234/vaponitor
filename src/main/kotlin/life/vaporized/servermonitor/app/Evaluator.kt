@@ -3,8 +3,9 @@ package life.vaporized.servermonitor.app
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import life.vaporized.servermonitor.Config
-import life.vaporized.servermonitor.app.model.MonitorEvaluation
+import life.vaporized.servermonitor.app.config.EnvConfig
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
+import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
@@ -12,7 +13,9 @@ import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.util.getLogger
 
-class Evaluator {
+class Evaluator(
+    private val monitorConfig: MonitorConfigProvider,
+) {
 
     val logger = getLogger()
 
@@ -39,7 +42,7 @@ class Evaluator {
     }
 
     private fun loadMonitors(): List<AppRunningMonitor> {
-        val services = Config.loadAppMonitors()
+        val services = monitorConfig.appDefinitions
         services.forEach {
             logger.info("Initializing monitor for: $it")
         }

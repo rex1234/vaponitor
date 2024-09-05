@@ -1,4 +1,4 @@
-package life.vaporized.servermonitor.app.model
+package life.vaporized.servermonitor.app.monitor.model
 
 import kotlinx.serialization.Serializable
 

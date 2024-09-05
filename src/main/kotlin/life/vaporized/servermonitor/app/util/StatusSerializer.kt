@@ -4,8 +4,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import life.vaporized.servermonitor.app.model.MonitorEvaluation
-import life.vaporized.servermonitor.app.model.MonitorStatus
+import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 
 class StatusSerializer {
 

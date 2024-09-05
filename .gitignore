@@ -36,6 +36,7 @@ out/
 .vscode/
 
 appconfig.yaml
+monitorconfig.yaml
 .env
 
 Tabler/

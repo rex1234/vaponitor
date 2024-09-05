@@ -1,4 +1,4 @@
-package life.vaporized.servermonitor.app
+package life.vaporized.servermonitor.app.discord
 
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -11,11 +11,10 @@ import dev.kord.gateway.PrivilegedIntent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import life.vaporized.servermonitor.Config
+import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.util.getLogger
 
-class DiscordBot(
-) {
+class DiscordBot {
     private val logger = getLogger()
 
 
@@ -26,7 +25,7 @@ class DiscordBot(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     suspend fun init() {
-        kord = Kord(Config.discordToken)
+        kord = Kord(EnvConfig.discordToken)
 
         registerIncomingMessageListener(kord)
 
@@ -59,7 +58,7 @@ class DiscordBot(
 
     fun sendMessage(message: String) = scope.launch {
         if (isReady) {
-            val channel = kord.getChannelOf<TextChannel>(Snowflake(Config.discordChannel))
+            val channel = kord.getChannelOf<TextChannel>(Snowflake(EnvConfig.discordChannel))
             channel?.createMessage(message)
         }
     }

@@ -1,12 +1,13 @@
 package life.vaporized.servermonitor.app.cron
 
-import life.vaporized.servermonitor.Config
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.cron.jobs.EvaluateMonitorsCronJob
 import life.vaporized.servermonitor.app.util.getLogger
 import kotlin.time.Duration
 
 class CronJobManager(
     private val evaluateMonitorsJob: EvaluateMonitorsCronJob,
+    private val monitorConfig: MonitorConfigProvider,
 ) {
 
     private val logger = getLogger()
@@ -14,7 +15,7 @@ class CronJobManager(
     private val runners = mutableListOf<CronJobRunner>()
 
     fun init() {
-        addJob(Config.monitorInterval, evaluateMonitorsJob)
+        addJob(monitorConfig.appMonitorInterval, evaluateMonitorsJob)
     }
 
     fun addJob(interval: Duration, cronJob: ICronJob): CronJobRunner {
