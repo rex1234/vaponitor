@@ -1,7 +1,7 @@
 package life.vaporized.servermonitor.app.monitor.resources
 
-import life.vaporized.servermonitor.app.monitor.model.MonitorStatus.ResourceStatus
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus.ResourceStatus
 import life.vaporized.servermonitor.app.util.getLogger
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -11,7 +11,7 @@ object CpuUsageMonitor : IResourceMonitor {
     private val logger = getLogger()
 
     override val id = "RCpu"
-    override val name: String = "Disk usage"
+    override val name: String = "CPU usage"
     override val message: String = "Current CPU usage"
 
     override suspend fun evaluate(): List<ResourceStatus> =

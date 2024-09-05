@@ -82,7 +82,7 @@ class AppRunningMonitor(
                 response.isSuccessful
             }
         } catch (e: IOException) {
-            logger.debug("URL check failed", e)
+            logger.debug("URL check failed {}", e::class.simpleName)
             false
         }
     }
