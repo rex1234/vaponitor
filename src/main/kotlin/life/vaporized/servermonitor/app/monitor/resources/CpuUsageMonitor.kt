@@ -3,8 +3,6 @@ package life.vaporized.servermonitor.app.monitor.resources
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus.ResourceStatus
 import life.vaporized.servermonitor.app.util.getLogger
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 object CpuUsageMonitor : IResourceMonitor {
 
@@ -27,10 +25,12 @@ object CpuUsageMonitor : IResourceMonitor {
         try {
             val command = arrayOf("bash", "-c", "mpstat | tail -n 1 | awk '{print 100 - \$NF}'")
             val process = ProcessBuilder(*command).start()
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            val cpuUsage = reader.readText().trim()
-            process.waitFor()
-            return cpuUsage.toFloat()
+
+            process.inputStream.bufferedReader().use { reader ->
+                val cpuUsage = reader.readText().trim()
+                process.waitFor()
+                return cpuUsage.toFloat()
+            }
         } catch (e: Exception) {
             logger.error("Failed to get CPU usage", e)
             return 0f
