@@ -25,7 +25,7 @@ class StatusRepository(
     val capacity: Int
         get() = history.capacity
 
-    suspend fun getLast(): MonitorEvaluation? = mutex.withLock {
+    suspend fun last(): MonitorEvaluation? = mutex.withLock {
         history.last
     }
 

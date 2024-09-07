@@ -38,7 +38,9 @@ fun Application.module() {
     }
 
     val statusRepository: StatusRepository by inject()
-    statusRepository.restore()
+    scope.launch {
+        statusRepository.restore()
+    }
 
     val cronManager: CronJobManager by inject()
     cronManager.init()

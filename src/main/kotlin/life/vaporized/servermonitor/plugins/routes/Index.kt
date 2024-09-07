@@ -24,7 +24,7 @@ fun Routing.indexRoute(
     monitorConfig: MonitorConfigProvider,
 ) {
     get("/") {
-        val lastEval = statusRepository.last
+        val lastEval = statusRepository.last()
         val lastStatus = lastEval?.list ?: emptyList()
 
         val history = statusRepository.history
