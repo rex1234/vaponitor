@@ -1,5 +1,5 @@
-package life.vaporized.servermonitor.app
-
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
@@ -14,46 +14,54 @@ class StatusRepository(
 ) {
 
     private val logger = getLogger()
+    private val mutex = Mutex()
 
     val history: LimitedSizeDeque<MonitorEvaluation> = LimitedSizeDeque(
         (monitorConfig.historyDuration.inWholeSeconds / monitorConfig.appMonitorInterval.inWholeSeconds).toInt()
     )
 
-    val capacity
+    val capacity: Int
         get() = history.capacity
 
-    val last: MonitorEvaluation?
-        get() = history.last
+    suspend fun getLast(): MonitorEvaluation? = mutex.withLock {
+        history.last
+    }
 
-    fun add(evaluation: MonitorEvaluation) {
+    suspend fun add(evaluation: MonitorEvaluation) = mutex.withLock {
         history.add(evaluation)
     }
 
-    fun getResourceHistory(): Map<String, List<MonitorStatus.ResourceStatus>> =
+    suspend fun getResourceHistory(): Map<String, List<MonitorStatus.ResourceStatus>> = mutex.withLock {
         history.elements.flatMap { eval ->
             eval.list
                 .filterIsInstance<MonitorStatus.ResourceStatus>()
                 .filter { it.id.startsWith("R") }
         }.groupBy { it.id }
+    }
 
-    fun getStatusHistory(id: String) =
+    suspend fun getStatusHistory(id: String): List<MonitorStatus> = mutex.withLock {
         history.elements.mapNotNull { eval ->
             eval.list.firstOrNull { it.id == id }
         }
+    }
 
-    fun save() {
+    suspend fun save() = mutex.withLock {
         val jsonData = statusSerializer.serialize(history.elements)
         File("data.json").writeText(jsonData)
         logger.info("Stored current state")
     }
 
-    fun restore() = runCatching {
-        val jsonData = File("data.json").readText()
-        val data = statusSerializer.deserialize(jsonData)
+    suspend fun restore() = runCatching {
+        mutex.withLock {
+            val jsonData = File("data.json").readText()
+            val data = statusSerializer.deserialize(jsonData)
 
-        data.forEach(::add)
+            data.forEach {
+                add(it)
+            }
 
-        logger.info("Restore ${data.size} history entries")
+            logger.info("Restore ${data.size} history entries")
+        }
     }.onFailure {
         logger.error("Failed to restore data", it)
     }
