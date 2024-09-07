@@ -1,3 +1,5 @@
+package life.vaporized.servermonitor.app
+
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
