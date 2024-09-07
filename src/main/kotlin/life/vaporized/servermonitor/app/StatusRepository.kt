@@ -1,7 +1,9 @@
 package life.vaporized.servermonitor.app
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
@@ -48,21 +50,25 @@ class StatusRepository(
     }
 
     suspend fun save() = mutex.withLock {
-        val jsonData = statusSerializer.serialize(history.elements)
-        File("data.json").writeText(jsonData)
-        logger.info("Stored current state")
+        withContext(Dispatchers.IO) {
+            val jsonData = statusSerializer.serialize(history.elements)
+            File("data.json").writeText(jsonData)
+            logger.info("Stored current state")
+        }
     }
 
     suspend fun restore() = runCatching {
-        mutex.withLock {
-            val jsonData = File("data.json").readText()
-            val data = statusSerializer.deserialize(jsonData)
+        withContext(Dispatchers.IO) {
+            mutex.withLock {
+                val jsonData = File("data.json").readText()
+                val data = statusSerializer.deserialize(jsonData)
 
-            data.forEach {
-                add(it)
+                data.forEach {
+                    add(it)
+                }
+
+                logger.info("Restore ${data.size} history entries")
             }
-
-            logger.info("Restore ${data.size} history entries")
         }
     }.onFailure {
         logger.error("Failed to restore data", it)

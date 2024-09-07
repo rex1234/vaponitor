@@ -10,6 +10,7 @@ class EvaluateMonitorsCronJob(
     private val statusRepository: StatusRepository,
     private val discordMonitorReporter: DiscordMonitorReporter,
 ) : ICronJob {
+
     override suspend fun run() {
         statusRepository.add(evaluator.evaluate())
         statusRepository.save()
