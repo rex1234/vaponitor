@@ -64,7 +64,7 @@ class StatusRepository(
                 val data = statusSerializer.deserialize(jsonData)
 
                 data.forEach {
-                    add(it)
+                    history.add(it)
                 }
 
                 logger.info("Restore ${data.size} history entries")
