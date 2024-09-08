@@ -40,7 +40,7 @@
             <div class="card">
                 <div class="card-body"
                      th:classappend="${!appStatus.isHttpsReachable ? 'status-card-error' : ''}">
-                    <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTP up' : 'HTTPS down'"></div>
+                    <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTPS up' : 'HTTPS down'"></div>
                     <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
                 </div>
             </div>
