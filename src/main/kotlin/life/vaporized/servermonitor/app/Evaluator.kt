@@ -1,8 +1,9 @@
 package life.vaporized.servermonitor.app
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
 import life.vaporized.servermonitor.app.monitor.IResourceMonitor
@@ -21,7 +22,7 @@ class Evaluator(
     private val appMonitors: List<AppRunningMonitor>
         get() = monitorConfig.appDefinitions.map(::AppRunningMonitor)
 
-    suspend fun evaluate(): MonitorEvaluation = coroutineScope {
+    suspend fun evaluate(): MonitorEvaluation = withContext(Dispatchers.IO) {
         val status = (resourceMonitors + appMonitors).map { monitor ->
             async {
                 logger.info("${monitor.name}: ${monitor.message}")

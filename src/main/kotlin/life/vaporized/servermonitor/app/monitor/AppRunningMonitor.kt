@@ -16,6 +16,7 @@ class AppRunningMonitor(
 ) : IMonitor<MonitorStatus.AppStatus> {
 
     private val logger = getLogger()
+    private val httpClient = OkHttpClient()
 
     override val name: String
         get() = app.name
@@ -72,13 +73,12 @@ class AppRunningMonitor(
     private suspend fun isUrlReachable(url: String): Boolean = withContext(Dispatchers.IO) {
         logger.info("Checking reachability for $url")
 
-        val client = OkHttpClient()
         val request = Request.Builder()
             .url(url)
             .build()
 
         try {
-            client.newCall(request).execute().use { response ->
+            httpClient.newCall(request).execute().use { response ->
                 response.isSuccessful
             }
         } catch (e: IOException) {
