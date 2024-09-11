@@ -1,8 +1,9 @@
-<div th:fragment="statusPage(appStatusList, volumes)" class="page-body">
+<div th:fragment="statusPage(appStatusList, volumes, graphs)" class="page-body">
     <div class="container-xl">
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-7" style="margin-top: 16px">
                 <div class="card">
+                    <div th:insert="~{scripts/linechart-twolines :: lineChartTwo(${graphs[0].data})}"></div>
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="subheader">RAM & CPU</div>

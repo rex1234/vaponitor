@@ -14,8 +14,8 @@ suspend fun errorRoute(
         ThymeleafContent(
             template = "error",
             model = mapOf(
-                    "code" to (code?.value?.toString() ?: cause?.cause?.message ?: "Unknown error"),
-                "message" to "Oops",
+                "code" to ("HTTP ${code?.value?.toString() ?: "500"}"),
+                "message" to (cause?.cause?.message ?: "Unknown error"),
             ),
         )
     )

@@ -1,0 +1,93 @@
+<script th:inline="javascript" th:fragment="lineChartTwo(graphData)">
+    // @formatter:off
+    document.addEventListener("DOMContentLoaded", function () {
+        window.ApexCharts && (new ApexCharts(document.getElementById('chart-completion-tasks-10'), {
+            chart: {
+                type: "area",
+                fontFamily: 'inherit',
+                height: 240,
+                parentHeightOffset: 0,
+                toolbar: {
+                    show: false,
+                },
+                animations: {
+                    enabled: false
+                },
+            },
+            dataLabels: {
+                enabled: false,
+            },
+            fill: {
+                opacity: .16,
+                type: 'solid'
+            },
+            stroke: {
+                width: 2,
+                lineCap: "round",
+                curve: "smooth",
+            },
+            series: [{
+                name: [[${graphData.yAxis[0].name}]],
+                data: [[${graphData.yAxis[0].data}]],
+            },{
+                name: [[${graphData.yAxis[1].name}]],
+                data: [[${graphData.yAxis[1].data}]],
+            }],
+            tooltip: {
+                theme: 'dark'
+            },
+            grid: {
+                padding: {
+                    top: -20,
+                    right: 0,
+                    left: -4,
+                    bottom: -4
+                },
+                strokeDashArray: 4,
+            },
+            xaxis: {
+                labels: {
+                    padding: 0,
+                    formatter: function(value) {
+                        return new Date(value).toLocaleTimeString();
+                    }
+                },
+                tooltip: {
+                    enabled: false
+                },
+                axisBorder: {
+                    show: false,
+                },
+                type: 'datetime',
+            },
+            yaxis: {
+                labels: {
+                    padding: 4,
+                    formatter: function(value) {
+                        return Math.floor(value);
+                    }
+                },
+                min: 0,
+                max: 100,
+                tickAmount: 5,
+            },
+            labels: [[${graphData.xAxis}]],
+            colors: [tabler.getColor("primary"), tabler.getColor("red")],
+            legend: {
+                show: true,
+                position: 'bottom',
+                offsetY: 12,
+                markers: {
+                    width: 10,
+                    height: 10,
+                    radius: 100,
+                },
+                itemMargin: {
+                    horizontal: 8,
+                    vertical: 8
+                },
+            },
+        })).render();
+    });
+    // @formatter:on
+</script>
