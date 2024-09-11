@@ -3,7 +3,7 @@
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-7" style="margin-top: 16px">
                 <div class="card">
-                    <div th:insert="~{scripts/linechart-twolines :: lineChartTwo(${graphs[0].id}, ${graphs[0].data})}"></div>
+                    <div th:insert="~{scripts/linechart :: lineChart(${graphs[0].id}, ${graphs[0].data})}"></div>
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="subheader">RAM & CPU</div>
@@ -46,7 +46,27 @@
                 </div>
             </div>
         </div>
+
+        <div class="row row-cards" style="margin-top: 8px">
+            <div class="col-md-7" style="margin-top: 16px" th:each="graph : ${graphs}">
+                <div class="card">
+                    <div th:insert="~{scripts/linechart :: lineChart('x' + ${graph.id}, ${graph.data})}"></div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">RAM & CPU</div>
+                        </div>
+                        <div class="d-flex">
+                            <h3 class="card-title">Resource usage</h3>
+                        </div>
+                        <div th:id="'chart-x' + ${graph.id}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+            </div>
+        </div>
     </div>
+
 
     <div class="container-xl">
         <div th:each="appStatus : ${appStatusList}">

@@ -1,5 +1,6 @@
-<script th:inline="javascript" th:fragment="lineChartTwo(id, graphData)">
+<script th:inline="javascript" th:fragment="lineChart(id, graphData)">
     // @formatter:off
+
     document.addEventListener("DOMContentLoaded", function () {
         window.ApexCharts && (new ApexCharts(document.getElementById('chart-' + /*[[${id}]]*/ 'default'), {
             chart: {
@@ -26,13 +27,12 @@
                 lineCap: "round",
                 curve: "smooth",
             },
-            series: [{
-                name: [[${graphData.yAxis[0].name}]],
-                data: [[${graphData.yAxis[0].data}]],
-            },{
-                name: [[${graphData.yAxis[1].name}]],
-                data: [[${graphData.yAxis[1].data}]],
-            }],
+            series: [[${graphData.yAxis}]].map(function(item) {
+                return {
+                    name: item.name,
+                    data: item.data
+                }
+            }),
             tooltip: {
                 theme: 'dark'
             },
