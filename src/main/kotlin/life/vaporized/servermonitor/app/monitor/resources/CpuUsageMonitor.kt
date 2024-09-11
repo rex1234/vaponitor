@@ -6,7 +6,7 @@ object CpuUsageMonitor : BashNumberResourceMonitor(
     command = NumberResourceDefinition(
         name = "CPU usage",
         description = "Current CPU usage",
-        command = arrayOf("bash", "-c", "mpstat | tail -n 1 | awk '{print 100 - \$NF}'"),
+        command = arrayOf("bash", "-c", "mpstat -P ALL 1 1 | tail -n 1 | awk '{print 100 - \$NF}'"),
     )
 ) {
 
