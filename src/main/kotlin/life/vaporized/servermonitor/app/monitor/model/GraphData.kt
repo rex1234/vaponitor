@@ -6,6 +6,9 @@ data class GraphDefinition<T>(
     val data: GraphData<T>,
 ) {
 
+    val id: String
+        get() = hashCode().toString()
+
     data class GraphData<T>(
         val graphName: String,
         val xAxis: List<T?>,

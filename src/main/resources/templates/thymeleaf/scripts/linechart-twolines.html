@@ -1,7 +1,7 @@
-<script th:inline="javascript" th:fragment="lineChartTwo(graphData)">
+<script th:inline="javascript" th:fragment="lineChartTwo(id, graphData)">
     // @formatter:off
     document.addEventListener("DOMContentLoaded", function () {
-        window.ApexCharts && (new ApexCharts(document.getElementById('chart-completion-tasks-10'), {
+        window.ApexCharts && (new ApexCharts(document.getElementById('chart-' + /*[[${id}]]*/ 'default'), {
             chart: {
                 type: "area",
                 fontFamily: 'inherit',

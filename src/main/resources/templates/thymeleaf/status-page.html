@@ -3,7 +3,7 @@
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-7" style="margin-top: 16px">
                 <div class="card">
-                    <div th:insert="~{scripts/linechart-twolines :: lineChartTwo(${graphs[0].data})}"></div>
+                    <div th:insert="~{scripts/linechart-twolines :: lineChartTwo(${graphs[0].id}, ${graphs[0].data})}"></div>
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="subheader">RAM & CPU</div>
@@ -11,7 +11,7 @@
                         <div class="d-flex">
                             <h3 class="card-title">Resource usage</h3>
                         </div>
-                        <div id="chart-completion-tasks-10"></div>
+                        <div th:id="'chart-' + ${graphs[0].id}"></div>
                     </div>
                 </div>
             </div>
