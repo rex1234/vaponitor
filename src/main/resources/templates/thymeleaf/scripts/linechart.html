@@ -1,7 +1,8 @@
 <script th:inline="javascript" th:fragment="lineChart(id, graphData)">
-    // @formatter:off
 
     document.addEventListener("DOMContentLoaded", function () {
+        let yAxis = [[${graphData.yAxis}]];
+
         window.ApexCharts && (new ApexCharts(document.getElementById('chart-' + /*[[${id}]]*/ 'default'), {
             chart: {
                 type: "area",
@@ -27,10 +28,10 @@
                 lineCap: "round",
                 curve: "smooth",
             },
-            series: [[${graphData.yAxis}]].map(function(item) {
+            series: yAxis.map(function (item) {
                 return {
                     name: item.name,
-                    data: item.data
+                    data: item.data,
                 }
             }),
             tooltip: {
@@ -48,7 +49,7 @@
             xaxis: {
                 labels: {
                     padding: 0,
-                    formatter: function(value) {
+                    formatter: function (value) {
                         return new Date(value).toLocaleTimeString();
                     }
                 },
@@ -60,17 +61,23 @@
                 },
                 type: 'datetime',
             },
-            yaxis: {
-                labels: {
-                    padding: 4,
-                    formatter: function(value) {
-                        return Math.floor(value);
-                    }
-                },
-                min: 0,
-                max: 100,
-                tickAmount: 5,
-            },
+            yaxis: yAxis.map(function (y, i) {
+                return {
+                    labels: {
+                        padding: 4,
+                        formatter: function (value, opt) {
+                            if (typeof opt === 'number') {
+                                return (opt * 20)
+                            }
+                            return y.formattedValues[opt.dataPointIndex];
+                        }
+                    },
+                    min: 0,
+                    max: 100,
+                    tickAmount: 5,
+                    opposite: i > 0,
+                }
+            }),
             labels: [[${graphData.xAxis}]],
             colors: [tabler.getColor("primary"), tabler.getColor("red")],
             legend: {
@@ -89,5 +96,4 @@
             },
         })).render();
     });
-    // @formatter:on
 </script>

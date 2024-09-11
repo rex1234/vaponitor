@@ -38,7 +38,7 @@ fun Routing.indexRoute(
         val timelineEntries = mapTimelineToEvaluations(timeline, history.elements)
 
         val ram = timelineEntries.map {
-            (it.list.firstOrNull { it.id == RamUsageMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
+            (it.list.firstOrNull { it.id == RamUsageMonitor.id } as? MonitorStatus.ResourceStatus)
         }
         val cpu = timelineEntries.map {
             (it.list.firstOrNull { it.id == CpuUsageMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
@@ -57,13 +57,13 @@ fun Routing.indexRoute(
             yAxis = listOf(
                 GraphData.YAxisData(
                     name = "RAM",
-                    data = ram,
-                    formattedValues = ram.map { "$it %" },
+                    data = ram.map { it?.usage },
+                    formattedValues = ram.map { "${it?.current} MB" },
                 ),
                 GraphData.YAxisData(
                     name = "CPU",
                     data = cpu,
-                    formattedValues = ram.map { "$it %" },
+                    formattedValues = cpu.map { "%.2f %%".format(it ?: 0f) },
                 ),
             )
         )
@@ -74,7 +74,7 @@ fun Routing.indexRoute(
                 xAxis = timeline,
                 yAxis = listOf(
                     GraphData.YAxisData(
-                        name = "Temperature",
+                        name = "CPU Temperature",
                         data = temp,
                         formattedValues = temp.map { "$it °C" },
                     ),
