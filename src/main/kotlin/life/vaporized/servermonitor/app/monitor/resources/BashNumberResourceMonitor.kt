@@ -29,8 +29,7 @@ open class BashNumberResourceMonitor(
 
     private fun getResourceValue(): Float {
         try {
-            val command = arrayOf("bash", "-c", command.command)
-            val process = ProcessBuilder(*command).start()
+            val process = ProcessBuilder(*command.command).start()
 
             process.inputStream.bufferedReader().use { reader ->
                 val cpuUsage = reader.readText().trim()

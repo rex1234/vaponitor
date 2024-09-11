@@ -3,7 +3,6 @@ package life.vaporized.servermonitor.app.config.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import life.vaporized.servermonitor.app.monitor.model.AppDefinition
-import life.vaporized.servermonitor.app.monitor.model.NumberResourceDefinition
 
 @Serializable
 class MonitorConfig(
@@ -22,7 +21,5 @@ class MonitorConfig(
     @Serializable
     data class Resources(
         val enabled: List<String>,
-        @SerialName("number")
-        val numberResourceDefinitions: List<NumberResourceDefinition>,
     )
 }

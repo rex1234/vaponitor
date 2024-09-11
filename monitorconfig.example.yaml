@@ -7,13 +7,6 @@ resources:
     - "RCpu"
     - "RRam"
     - "RDisk"
-  number:
-    - name: "CPU temperature"
-      description: "Current CPU temperature"
-      command: "temp -v"
-    - name: "Weather"
-      description: "Weather in Brno"
-      command: "curl https://weather.com/brno/"
 
 apps:
   - name: CallingStation

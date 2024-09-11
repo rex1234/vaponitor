@@ -16,6 +16,7 @@ import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,6 +27,8 @@ fun Routing.indexRoute(
     monitorConfig: MonitorConfigProvider,
 ) {
     get("/") {
+        val enabledResources = monitorConfig.enabledResourceMonitors.map { it.id }
+
         val lastEval = statusRepository.last()
         val lastStatus = lastEval?.list ?: emptyList()
 
@@ -39,6 +42,9 @@ fun Routing.indexRoute(
         }
         val cpu = timelineEntries.map {
             (it.list.firstOrNull { it.id == CpuUsageMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
+        }
+        val temp = timelineEntries.map {
+            (it.list.firstOrNull { it.id == RaspberryTempMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
         }
         val volumes = lastEval?.list
             ?.filterIsInstance<MonitorStatus.ResourceStatus>()
@@ -62,12 +68,35 @@ fun Routing.indexRoute(
             )
         )
 
-        val graphs = listOf(
+        val tempGraph = if (RaspberryTempMonitor.id in enabledResources) {
+            GraphData(
+                graphName = "Raspberry",
+                xAxis = timeline,
+                yAxis = listOf(
+                    GraphData.YAxisData(
+                        name = "Temperature",
+                        data = temp,
+                        formattedValues = temp.map { "$it °C" },
+                    ),
+                )
+            )
+        } else {
+            null
+        }
+
+        val graphs = listOfNotNull(
             GraphDefinition(
                 title = "Resources",
                 description = "RAM and CPU usage",
                 data = resourcesGraph,
-            )
+            ),
+            tempGraph?.let {
+                GraphDefinition(
+                    title = "Raspberry",
+                    description = "Temperature",
+                    data = it,
+                )
+            }
         )
 
         call.respond(
