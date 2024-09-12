@@ -58,6 +58,8 @@ class StatusRepository(
     }
 
     suspend fun restore() = runCatching {
+        logger.info("Restoring saved data")
+
         withContext(Dispatchers.IO) {
             mutex.withLock {
                 val jsonData = File("data.json").readText()

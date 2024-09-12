@@ -11,6 +11,7 @@ import dev.kord.gateway.PrivilegedIntent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.util.getLogger
 
@@ -24,21 +25,27 @@ class DiscordBot {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun init() {
-        kord = Kord(EnvConfig.discordToken)
+    suspend fun init() = withContext(Dispatchers.IO) {
+        try {
+            logger.info("Initializing Discord bot")
 
-        registerIncomingMessageListener(kord)
+            kord = Kord(EnvConfig.discordToken)
 
-        // Listen for the Ready event to know when the bot has connected
-        kord.on<ReadyEvent> {
-            logger.info("Discord bot initialized")
-            isReady = true
-        }
+            registerIncomingMessageListener(kord)
 
-        kord.login {
-            // we need to specify this to receive the content of messages
-            @OptIn(PrivilegedIntent::class)
-            intents += Intent.MessageContent
+            // Listen for the Ready event to know when the bot has connected
+            kord.on<ReadyEvent> {
+                logger.info("Discord bot initialized")
+                isReady = true
+            }
+
+            kord.login {
+                // we need to specify this to receive the content of messages
+                @OptIn(PrivilegedIntent::class)
+                intents += Intent.MessageContent
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to initialize Discord bot, discord integration will be turned off", e)
         }
     }
 

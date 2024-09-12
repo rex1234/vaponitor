@@ -39,6 +39,8 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-thymeleaf-jvm")
     implementation("io.ktor:ktor-server-metrics-jvm")
@@ -48,10 +50,9 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common-jvm")
     implementation("io.ktor:ktor-server-status-pages-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
-    testImplementation("io.ktor:ktor-server-test-host-jvm")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+
+    implementation("ch.qos.logback:logback-classic:$logback_version")
 
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
     implementation("com.squareup.okhttp3:okhttp")
@@ -64,12 +65,15 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
-    implementation("me.jakejmattson:DiscordKt:0.23.4")
+    implementation("me.jakejmattson:DiscordKt:0.23.4") {
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
     implementation("com.github.oshi:oshi-core:6.4.1")
-    implementation("org.slf4j:slf4j-api:2.0.0")
-    implementation("ch.qos.logback:logback-classic:1.4.12")
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
+
+    testImplementation("io.ktor:ktor-server-test-host-jvm")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
 detekt {

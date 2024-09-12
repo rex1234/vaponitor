@@ -15,6 +15,7 @@ class CronJobManager(
     private val runners = mutableListOf<CronJobRunner>()
 
     fun init() {
+        logger.info("Initializing cron jobs")
         addJob(monitorConfig.appMonitorInterval, evaluateMonitorsJob)
     }
 

@@ -25,7 +25,7 @@ class Evaluator(
     suspend fun evaluate(): MonitorEvaluation = withContext(Dispatchers.IO) {
         val status = (resourceMonitors + appMonitors).map { monitor ->
             async {
-                logger.info("${monitor.name}: ${monitor.message}")
+                logger.debug("Evaluating: ${monitor.name}")
                 monitor.evaluate().onEach {
                     logger.debug("Evaluation finished: {}", it.toString())
                 }

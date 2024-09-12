@@ -46,7 +46,7 @@ class AppRunningMonitor(
 
     private suspend fun isProcessRunning(app: AppDefinition) = withContext(Dispatchers.IO) {
         try {
-            logger.info("Running ${app.name} - ${app.command}")
+            logger.debug("Running ${app.name} - ${app.command}")
 
             val process = ProcessBuilder("bash", "-c", app.command)
                 .start()
@@ -62,7 +62,7 @@ class AppRunningMonitor(
             val exitCode = process.waitFor()
 
             return@withContext (exitCode == 0 && hasOutput).also {
-                logger.info("Process ${app.name} running: $it")
+                logger.debug("Process ${app.name} running: $it")
             }
         } catch (e: Exception) {
             logger.debug("Process evaluation failed", e)
@@ -71,7 +71,7 @@ class AppRunningMonitor(
     }
 
     private suspend fun isUrlReachable(url: String): Boolean = withContext(Dispatchers.IO) {
-        logger.info("Checking reachability for $url")
+        logger.debug("Checking reachability for $url")
 
         val request = Request.Builder()
             .url(url)
