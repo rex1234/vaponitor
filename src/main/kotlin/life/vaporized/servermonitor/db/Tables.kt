@@ -1,7 +1,6 @@
 package life.vaporized.servermonitor.db
 
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 
@@ -11,16 +10,16 @@ object Tables {
         val createdAt = datetime("date").defaultExpression(CurrentDateTime)
     }
 
-    object ResourceEntry : Table() {
-        val resourceId = varchar("id", 255).entityId()
+    object ResourceEntry : IntIdTable() {
+        val resourceId = varchar("resourceId", 255)
         val usage = float("value")
         val max = float("max")
         val description = varchar("description", 255)
         val measurementIdTable = reference("measurementId", Measurement)
     }
 
-    object AppEntry : Table() {
-        val appId = varchar("id", 255).entityId()
+    object AppEntry : IntIdTable() {
+        val appId = varchar("appId", 255)
         val isAlive = bool("isAlive")
         val isHttpEnabled = bool("isHttpEnabled")
         val isHttpsEnabled = bool("isHttpsEnabled")

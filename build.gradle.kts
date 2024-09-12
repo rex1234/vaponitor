@@ -63,10 +63,10 @@ dependencies {
     implementation("io.insert-koin:koin-ktor")
 
     implementation("org.jetbrains.exposed:exposed-core:0.54.0")
-    implementation("org.jetbrains.exposed:exposed-core:0.54.0")
-    implementation("org.jetbrains.exposed:exposed-core:0.54.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.54.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.54.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.54.0")
-    implementation("org.xerial:sqlite-jdbc:3.41.2.2")
+    implementation("org.xerial:sqlite-jdbc:3.46.1.0")
 
     implementation("org.yaml:snakeyaml:2.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
