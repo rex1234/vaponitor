@@ -10,11 +10,13 @@ import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.LimitedSizeDeque
 import life.vaporized.servermonitor.app.util.StatusSerializer
 import life.vaporized.servermonitor.app.util.getLogger
+import life.vaporized.servermonitor.db.SqliteDb
 import java.io.File
 
 class StatusRepository(
-    private val statusSerializer: StatusSerializer,
     private val monitorConfig: MonitorConfigProvider,
+    private val statusSerializer: StatusSerializer,
+    private val database: SqliteDb,
 ) {
 
     private val logger = getLogger()
@@ -33,6 +35,7 @@ class StatusRepository(
 
     suspend fun add(evaluation: MonitorEvaluation) = mutex.withLock {
         history.add(evaluation)
+        database.insertToDb(evaluation)
     }
 
     suspend fun getResourceHistory(): Map<String, List<MonitorStatus.ResourceStatus>> = mutex.withLock {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.cron.CronJobManager
 import life.vaporized.servermonitor.app.discord.DiscordBot
+import life.vaporized.servermonitor.db.SqliteDb
 import life.vaporized.servermonitor.plugins.configureHTTP
 import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
@@ -34,6 +35,7 @@ fun Application.module() {
     val cronManager: CronJobManager by inject()
     val discordBot: DiscordBot by inject()
     val statusRepository: StatusRepository by inject()
+    val database: SqliteDb by inject()
 
     environment.monitor.subscribe(ApplicationStarted) {
         val scope = CoroutineScope(Dispatchers.IO + coroutineContext)  // Use application’s coroutineContext
@@ -41,6 +43,7 @@ fun Application.module() {
         discordBot.init()
 
         scope.launch {
+            database.init()
             statusRepository.restore()
             cronManager.init()
         }
