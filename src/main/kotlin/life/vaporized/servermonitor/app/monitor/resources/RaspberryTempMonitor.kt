@@ -6,7 +6,11 @@ object RaspberryTempMonitor : BashNumberResourceMonitor(
     command = NumberResourceDefinition(
         name = "CPU temperature",
         description = "Current CPU temperature",
-        command = arrayOf("bash", "-c", "vcgencmd measure_temp | cut -d '=' -f 2 | cut -d \"'\" -f 1")
+        command = arrayOf(
+            "bash",
+            "-c",
+            "cat /sys/class/thermal/thermal_zone0/temp | awk '{printf \"%.1f\\n\", \$1 / 1000}'\n"
+        )
         //command = arrayOf("cmd", "/c", "echo", "50")
     )
 ) {
