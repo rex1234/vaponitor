@@ -11,7 +11,6 @@ import dev.kord.gateway.PrivilegedIntent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.util.getLogger
 
@@ -25,7 +24,7 @@ class DiscordBot {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun init() = withContext(Dispatchers.IO) {
+    fun init() = scope.launch {
         try {
             logger.info("Initializing Discord bot")
 

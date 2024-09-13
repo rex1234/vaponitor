@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.cron.CronJobManager
 import life.vaporized.servermonitor.app.discord.DiscordBot
-import life.vaporized.servermonitor.app.util.getLogger
 import life.vaporized.servermonitor.plugins.configureHTTP
 import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
@@ -39,15 +38,11 @@ fun Application.module() {
     environment.monitor.subscribe(ApplicationStarted) {
         val scope = CoroutineScope(Dispatchers.IO + coroutineContext)  // Use application’s coroutineContext
 
+        discordBot.init()
+
         scope.launch {
-            try {
-                discordBot.init()
-                statusRepository.restore()
-                cronManager.init()
-            } catch (e: Exception) {
-                getLogger().error("Failed to initialize application", e)
-                throw e
-            }
+            statusRepository.restore()
+            cronManager.init()
         }
     }
 
