@@ -7,6 +7,7 @@ import kotlinx.serialization.modules.polymorphic
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 
+@Deprecated("Replaced by SqliteDb")
 class StatusSerializer {
 
     private val module = SerializersModule {

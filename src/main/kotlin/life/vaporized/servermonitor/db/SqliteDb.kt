@@ -31,9 +31,6 @@ class SqliteDb {
                 Tables.AppEntry,
             )
         }
-
-        val x = getMeasurementsWithEntries(5)
-        logger.info("Loaded ${x.size} measurements from database")
     }
 
     suspend fun insertToDb(evaluation: MonitorEvaluation) = withContext(Dispatchers.IO) {
@@ -68,22 +65,23 @@ class SqliteDb {
     suspend fun getMeasurementsWithEntries(
         numberOfMeasurements: Int,
     ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
+        logger.debug("Getting $numberOfMeasurements measurements with entries")
+
         transaction {
-            // get last n measurements
             val measurements = Tables.Measurement
                 .selectAll()
                 .limit(numberOfMeasurements)
                 .sortedByDescending { it[Tables.Measurement.id] }
 
-            // apps for selected measurements
+            val measurementIds = measurements.map { it[Tables.Measurement.id] }
             val apps = Tables.AppEntry
                 .selectAll()
-                .filter { it[Tables.AppEntry.measurementIdTable] in measurements.map { it[Tables.Measurement.id] } }
+                .filter { it[Tables.AppEntry.measurementIdTable] in measurementIds }
                 .groupBy { it[Tables.AppEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
                     measurementId to entries.map {
                         MonitorStatus.AppStatus(
-                            app = AppDefinition(it[Tables.AppEntry.appId], ""),
+                            app = AppDefinition(it[Tables.AppEntry.appId], it[Tables.AppEntry.description] ?: ""),
                             isRunning = it[Tables.AppEntry.isAlive],
                             isHttpReachable = it[Tables.AppEntry.isHttpReachable],
                             isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
@@ -94,7 +92,7 @@ class SqliteDb {
 
             val resources = Tables.ResourceEntry
                 .selectAll()
-                .filter { it[Tables.ResourceEntry.measurementIdTable] in measurements.map { it[Tables.Measurement.id] } }
+                .filter { it[Tables.ResourceEntry.measurementIdTable] in measurementIds }
                 .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
                     measurementId to entries.map {
@@ -108,6 +106,8 @@ class SqliteDb {
                     }
                 }
                 .toMap()
+
+            logger.info("Retrieved ${measurements.count()} measurements with entries")
 
             measurements.map { measurement ->
                 MonitorEvaluation(

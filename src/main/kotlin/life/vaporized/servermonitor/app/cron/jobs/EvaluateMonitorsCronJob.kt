@@ -13,8 +13,6 @@ class EvaluateMonitorsCronJob(
 
     override suspend fun run() {
         statusRepository.add(evaluator.evaluate())
-        statusRepository.save()
-
         discordMonitorReporter.sendReport()
     }
 }
