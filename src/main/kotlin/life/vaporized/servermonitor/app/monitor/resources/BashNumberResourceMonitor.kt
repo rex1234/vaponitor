@@ -29,12 +29,12 @@ open class BashNumberResourceMonitor(
 
     private fun getResourceValue(): Float {
         try {
-            val process = ProcessBuilder(*command.command).start()
+            val process = ProcessBuilder(*command.command.toTypedArray()).start()
 
             process.inputStream.bufferedReader().use { reader ->
-                val cpuUsage = reader.readText().trim()
+                val value = reader.readText().trim()
                 process.waitFor()
-                return cpuUsage.toFloat()
+                return value.toFloat()
             }
         } catch (e: Exception) {
             logger.error("Failed to get ${command.name} value", e)

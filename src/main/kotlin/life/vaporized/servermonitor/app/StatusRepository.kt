@@ -6,7 +6,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
-import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.LimitedSizeDeque
 import life.vaporized.servermonitor.app.util.StatusSerializer
 import life.vaporized.servermonitor.app.util.getLogger
@@ -36,20 +35,6 @@ class StatusRepository(
     suspend fun add(evaluation: MonitorEvaluation) = mutex.withLock {
         history.add(evaluation)
         database.insertToDb(evaluation)
-    }
-
-    suspend fun getResourceHistory(): Map<String, List<MonitorStatus.ResourceStatus>> = mutex.withLock {
-        history.elements.flatMap { eval ->
-            eval.list
-                .filterIsInstance<MonitorStatus.ResourceStatus>()
-                .filter { it.id.startsWith("R") }
-        }.groupBy { it.id }
-    }
-
-    suspend fun getStatusHistory(id: String): List<MonitorStatus> = mutex.withLock {
-        history.elements.mapNotNull { eval ->
-            eval.list.firstOrNull { it.id == id }
-        }
     }
 
     suspend fun save() = mutex.withLock {

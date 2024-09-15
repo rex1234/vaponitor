@@ -24,12 +24,10 @@ class DiscordMonitorReporter(
         val currentAppEval = eval.last()
         val previousAppEval = eval.first()
 
-        currentAppEval.list
-            .filterIsInstance<MonitorStatus.AppStatus>()
+        currentAppEval.apps
             .forEach { currentStatus ->
                 val app = currentStatus.app
-                val previousStatus = previousAppEval.list
-                    .filterIsInstance<MonitorStatus.AppStatus>()
+                val previousStatus = previousAppEval.apps
                     .firstOrNull { it.id == currentStatus.id } ?: return@forEach
 
                 if (currentStatus == previousStatus) {

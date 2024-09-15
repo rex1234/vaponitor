@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class NumberResourceDefinition(
     val name: String,
     val description: String,
-    val command: Array<String>,
+    val command: List<String>,
 )

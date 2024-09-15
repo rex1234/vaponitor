@@ -31,18 +31,17 @@ class SqliteDb {
                 Tables.AppEntry,
             )
         }
+
+        val x = getMeasurementsWithEntries(5)
+        logger.info("Loaded ${x.size} measurements from database")
     }
 
     suspend fun insertToDb(evaluation: MonitorEvaluation) = withContext(Dispatchers.IO) {
         transaction {
             val measurementId = Tables.Measurement.insertAndGetId {}.value
 
-            evaluation.list.forEach {
-                when (it) {
-                    is MonitorStatus.AppStatus -> insertAppStatus(measurementId, it)
-                    is MonitorStatus.ResourceStatus -> insertResourceStatus(measurementId, it)
-                }
-            }
+            evaluation.apps.forEach { insertAppStatus(measurementId, it) }
+            evaluation.resources.forEach { insertResourceStatus(measurementId, it) }
         }
     }
 
@@ -66,41 +65,57 @@ class SqliteDb {
         }
     }
 
-    fun getMeasurementsWithEntries(): List<MonitorEvaluation> {
-        return transaction {
-            // Perform a LEFT JOIN on Measurement, AppEntry, and ResourceEntry
-            (Tables.Measurement leftJoin Tables.AppEntry leftJoin Tables.ResourceEntry)
+    suspend fun getMeasurementsWithEntries(
+        numberOfMeasurements: Int,
+    ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
+        transaction {
+            // get last n measurements
+            val measurements = Tables.Measurement
                 .selectAll()
-                .groupBy { it[Tables.Measurement.id] }
-                .map { (measurementId, rows) ->
-                    val appEntries = rows.filter { it[Tables.AppEntry.appId] != null }.map { row ->
+                .limit(numberOfMeasurements)
+                .sortedByDescending { it[Tables.Measurement.id] }
+
+            // apps for selected measurements
+            val apps = Tables.AppEntry
+                .selectAll()
+                .filter { it[Tables.AppEntry.measurementIdTable] in measurements.map { it[Tables.Measurement.id] } }
+                .groupBy { it[Tables.AppEntry.measurementIdTable] }
+                .map { (measurementId, entries) ->
+                    measurementId to entries.map {
                         MonitorStatus.AppStatus(
-                            app = AppDefinition(
-                                name = row[Tables.AppEntry.appId],
-                                description = "",
-                            ),
-                            isRunning = row[Tables.AppEntry.isAlive],
-                            isHttpReachable = row[Tables.AppEntry.isHttpReachable],
-                            isHttpsReachable = row[Tables.AppEntry.isHttpsReachable],
+                            app = AppDefinition(it[Tables.AppEntry.appId], ""),
+                            isRunning = it[Tables.AppEntry.isAlive],
+                            isHttpReachable = it[Tables.AppEntry.isHttpReachable],
+                            isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
                         )
                     }
-
-                    val resourceEntries = rows.filter { it[Tables.ResourceEntry.resourceId] != null }.map { row ->
-                        MonitorStatus.ResourceStatus(
-                            id = row[Tables.ResourceEntry.resourceId],
-                            name = row[Tables.ResourceEntry.resourceId],
-                            description = row[Tables.ResourceEntry.description] ?: "",
-                            current = row[Tables.ResourceEntry.usage],
-                            total = row[Tables.ResourceEntry.max],
-                        )
-                    }
-
-                    // Group data by Measurement ID and collect appEntries and resourceEntries
-                    MonitorEvaluation(
-                        time = rows.first()[Tables.Measurement.createdAt].toInstant(ZoneOffset.UTC).toEpochMilli(),
-                        list = resourceEntries + appEntries,
-                    )
                 }
+                .toMap()
+
+            val resources = Tables.ResourceEntry
+                .selectAll()
+                .filter { it[Tables.ResourceEntry.measurementIdTable] in measurements.map { it[Tables.Measurement.id] } }
+                .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
+                .map { (measurementId, entries) ->
+                    measurementId to entries.map {
+                        MonitorStatus.ResourceStatus(
+                            id = it[Tables.ResourceEntry.resourceId],
+                            name = it[Tables.ResourceEntry.resourceId],
+                            description = it[Tables.ResourceEntry.description] ?: "",
+                            current = it[Tables.ResourceEntry.usage],
+                            total = it[Tables.ResourceEntry.max],
+                        )
+                    }
+                }
+                .toMap()
+
+            measurements.map { measurement ->
+                MonitorEvaluation(
+                    apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
+                    resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
+                    time = measurement[Tables.Measurement.createdAt].toEpochSecond(ZoneOffset.UTC),
+                )
+            }
         }
     }
 }

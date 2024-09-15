@@ -12,7 +12,6 @@ import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.GraphDefinition
 import life.vaporized.servermonitor.app.monitor.model.GraphDefinition.GraphData
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
-import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
@@ -30,7 +29,6 @@ fun Routing.indexRoute(
         val enabledResources = monitorConfig.enabledResourceMonitors.map { it.id }
 
         val lastEval = statusRepository.last()
-        val lastStatus = lastEval?.list ?: emptyList()
 
         val history = statusRepository.history
         val timeline = getTimeLine(monitorConfig.historyDuration)
@@ -38,16 +36,15 @@ fun Routing.indexRoute(
         val timelineEntries = mapTimelineToEvaluations(timeline, history.elements)
 
         val ram = timelineEntries.map {
-            (it.list.firstOrNull { it.id == RamUsageMonitor.id } as? MonitorStatus.ResourceStatus)
+            it.resourceWithId(RamUsageMonitor.id)
         }
         val cpu = timelineEntries.map {
-            (it.list.firstOrNull { it.id == CpuUsageMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
+            it.resourceWithId(CpuUsageMonitor.id)?.usage
         }
         val temp = timelineEntries.map {
-            (it.list.firstOrNull { it.id == RaspberryTempMonitor.id } as? MonitorStatus.ResourceStatus)?.usage
+            it.resourceWithId(RaspberryTempMonitor.id)?.usage
         }
-        val volumes = lastEval?.list
-            ?.filterIsInstance<MonitorStatus.ResourceStatus>()
+        val volumes = lastEval?.resources
             ?.filter { it.id.startsWith(DiskUsageMonitor.id) }
             ?: emptyList()
 
@@ -105,7 +102,7 @@ fun Routing.indexRoute(
                 model = mapOf(
                     "appName" to EnvConfig.appName,
                     "time" to SimpleDateFormat.getTimeInstance().format(Date(lastEval?.time ?: 0)),
-                    "appStatusList" to lastStatus.filterIsInstance<MonitorStatus.AppStatus>(),
+                    "appStatusList" to (lastEval?.apps ?: emptyList()),
                     "timeline" to timeline,
                     "graphs" to graphs,
                     "volumes" to volumes,
@@ -136,7 +133,8 @@ fun mapTimelineToEvaluations(
             }
         }
         MonitorEvaluation(
-            list = closestEvaluation?.list ?: emptyList(),
+            apps = closestEvaluation?.apps ?: emptyList(),
+            resources = closestEvaluation?.resources ?: emptyList(),
             time = time
         )
     }
