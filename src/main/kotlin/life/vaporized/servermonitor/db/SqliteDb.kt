@@ -71,7 +71,7 @@ class SqliteDb {
             val measurements = Tables.Measurement
                 .selectAll()
                 .limit(numberOfMeasurements)
-                .sortedByDescending { it[Tables.Measurement.id] }
+                .sortedBy { it[Tables.Measurement.id] }
 
             val measurementIds = measurements.map { it[Tables.Measurement.id] }
             val apps = Tables.AppEntry
@@ -113,7 +113,7 @@ class SqliteDb {
                 MonitorEvaluation(
                     apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
                     resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
-                    time = measurement[Tables.Measurement.createdAt].toEpochSecond(ZoneOffset.UTC),
+                    time = measurement[Tables.Measurement.createdAt].toEpochSecond(ZoneOffset.UTC) * 1000,
                 )
             }
         }

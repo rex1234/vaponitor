@@ -36,13 +36,13 @@ fun Routing.indexRoute(
         val timelineEntries = mapTimelineToEvaluations(timeline, history.elements)
 
         val ram = timelineEntries.map {
-            it.resourceWithId(RamUsageMonitor.id)
+            it?.resourceWithId(RamUsageMonitor.id)
         }
         val cpu = timelineEntries.map {
-            it.resourceWithId(CpuUsageMonitor.id)?.usage
+            it?.resourceWithId(CpuUsageMonitor.id)?.usage
         }
         val temp = timelineEntries.map {
-            it.resourceWithId(RaspberryTempMonitor.id)?.usage
+            it?.resourceWithId(RaspberryTempMonitor.id)?.usage
         }
         val volumes = lastEval?.resources
             ?.filter { it.id.startsWith(DiskUsageMonitor.id) }
@@ -73,7 +73,7 @@ fun Routing.indexRoute(
                     GraphData.YAxisData(
                         name = "CPU Temperature",
                         data = temp,
-                        formattedValues = temp.map { "$it °C" },
+                        formattedValues = temp.map { "%.2f %%  °C".format(it ?: 0f) },
                     ),
                 )
             )
@@ -115,7 +115,7 @@ fun Routing.indexRoute(
 fun mapTimelineToEvaluations(
     timeline: List<Long>,
     entries: List<MonitorEvaluation>,
-): List<MonitorEvaluation> =
+): List<MonitorEvaluation?> =
     timeline.map { time ->
         val index = entries.binarySearch { it.time.compareTo(time) }
         val closestEvaluation = if (index >= 0) {
@@ -132,20 +132,19 @@ fun mapTimelineToEvaluations(
                 }
             }
         }
-        MonitorEvaluation(
-            apps = closestEvaluation?.apps ?: emptyList(),
-            resources = closestEvaluation?.resources ?: emptyList(),
-            time = time
-        )
+
+        if (closestEvaluation == null || time < entries.first().time) {
+            null // Explicitly handle case where time is before the first entry
+        } else {
+            MonitorEvaluation(
+                apps = closestEvaluation.apps,
+                resources = closestEvaluation.resources,
+                time = time
+            )
+        }
     }
 
 private fun getTimeLine(timelineDuration: Duration): List<Long> {
     val stepSize = timelineDuration.inWholeMilliseconds / TIMELINE_POINTS
     return (0 until TIMELINE_POINTS).map { System.currentTimeMillis() - it * stepSize }
-}
-
-fun <T> List<T>.prefixWithNulls(totalCapacity: Int): List<T?> {
-    require(totalCapacity >= this.size) { "Total capacity must be greater than or equal to the original list size." }
-    val numberOfNulls = totalCapacity - this.size
-    return List(numberOfNulls) { null } + this
 }

@@ -13,4 +13,5 @@
     <logger name="io.ktor" level="INFO"/>
     <logger name="org.thymeleaf" level="INFO"/>
     <logger name="dev.kord" level="INFO"/>
+    <logger name="org.sqlite.core.NativeDB" level="INFO"/>
 </configuration>
