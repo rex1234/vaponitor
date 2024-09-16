@@ -1,13 +1,11 @@
 package life.vaporized.servermonitor.db
 
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.javatime.CurrentDateTime
-import org.jetbrains.exposed.sql.javatime.datetime
 
 object Tables {
 
     object Measurement : IntIdTable() {
-        val date = datetime("date").defaultExpression(CurrentDateTime)
+        val timestamp = long("timestamp")
     }
 
     object ResourceEntry : IntIdTable() {

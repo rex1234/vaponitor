@@ -12,7 +12,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.ZoneOffset
 
 class SqliteDb {
 
@@ -35,7 +34,9 @@ class SqliteDb {
 
     suspend fun insertToDb(evaluation: MonitorEvaluation) = withContext(Dispatchers.IO) {
         transaction {
-            val measurementId = Tables.Measurement.insertAndGetId {}.value
+            val measurementId = Tables.Measurement.insertAndGetId {
+                it[timestamp] = System.currentTimeMillis()
+            }.value
 
             evaluation.apps.forEach { insertAppStatus(measurementId, it) }
             evaluation.resources.forEach { insertResourceStatus(measurementId, it) }
@@ -113,7 +114,7 @@ class SqliteDb {
                 MonitorEvaluation(
                     apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
                     resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
-                    time = measurement[Tables.Measurement.date].toEpochSecond(ZoneOffset.UTC) * 1000,
+                    time = measurement[Tables.Measurement.timestamp],
                 )
             }
         }
