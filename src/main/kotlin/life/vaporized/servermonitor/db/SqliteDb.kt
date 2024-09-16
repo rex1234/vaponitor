@@ -113,7 +113,7 @@ class SqliteDb {
                 MonitorEvaluation(
                     apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
                     resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
-                    time = measurement[Tables.Measurement.createdAt].toEpochSecond(ZoneOffset.UTC) * 1000,
+                    time = measurement[Tables.Measurement.date].toEpochSecond(ZoneOffset.UTC) * 1000,
                 )
             }
         }

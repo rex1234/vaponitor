@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 object Tables {
 
     object Measurement : IntIdTable() {
-        val createdAt = datetime("date").defaultExpression(CurrentDateTime)
+        val date = datetime("date").defaultExpression(CurrentDateTime)
     }
 
     object ResourceEntry : IntIdTable() {
