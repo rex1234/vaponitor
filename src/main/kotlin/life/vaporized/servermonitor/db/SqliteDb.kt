@@ -8,6 +8,7 @@ import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
@@ -71,8 +72,10 @@ class SqliteDb {
         transaction {
             val measurements = Tables.Measurement
                 .selectAll()
+                .orderBy(Tables.Measurement.id, SortOrder.DESC)
                 .limit(numberOfMeasurements)
-                .sortedBy { it[Tables.Measurement.id] }
+                .toList()
+                .reversed()
 
             val measurementIds = measurements.map { it[Tables.Measurement.id] }
             val apps = Tables.AppEntry
