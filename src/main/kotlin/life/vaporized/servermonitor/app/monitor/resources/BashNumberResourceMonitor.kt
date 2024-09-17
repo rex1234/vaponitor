@@ -4,6 +4,7 @@ import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.model.NumberResourceDefinition
 import life.vaporized.servermonitor.app.util.getLogger
+import java.util.concurrent.TimeUnit
 
 /**
  * Executes a command yielding int value that can be shown in a graph
@@ -29,13 +30,22 @@ open class BashNumberResourceMonitor(
 
     private fun getResourceValue(): Float {
         try {
-            val process = ProcessBuilder(*command.command.toTypedArray()).start()
+            val process = ProcessBuilder(*command.command.toTypedArray())
+                .apply {
+                    environment().putAll(System.getenv())
+                }.start()
 
-            process.inputStream.bufferedReader().use { reader ->
+            val processResult = process.inputStream.bufferedReader().use { reader ->
                 val value = reader.readText().trim()
-                process.waitFor()
-                return value.toFloat()
+                process.waitFor(5, TimeUnit.SECONDS)
+                value.toFloatOrNull() ?: -1f
             }
+
+            val errors = process.errorStream.bufferedReader().readText()
+            if (errors.isNotEmpty()) {
+                logger.error("Error while executing ${command.name} command: $errors")
+            }
+            return processResult
         } catch (e: Exception) {
             logger.error("Failed to get ${command.name} value", e)
             return 0f

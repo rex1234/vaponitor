@@ -5,9 +5,9 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.decodeFromString
 import life.vaporized.servermonitor.app.config.model.MonitorConfig
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
-import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import net.mamoe.yamlkt.Yaml
 import java.io.File
 
@@ -15,11 +15,12 @@ class MonitorConfigProvider {
 
     private companion object {
         const val CONFIG_FILENAME = "monitorconfig.yaml"
-        private val RESOURCE_MONITORS = listOf(
+
+        val RESOURCE_MONITORS = listOf(
             CpuUsageMonitor,
             DiskUsageMonitor,
             RamUsageMonitor,
-            RaspberryTempMonitor,
+            Dht22Monitor,
         )
     }
 

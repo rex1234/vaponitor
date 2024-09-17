@@ -49,6 +49,9 @@ class AppRunningMonitor(
             logger.debug("Running ${app.name} - ${app.command}")
 
             val process = ProcessBuilder("bash", "-c", app.command)
+                .apply {
+                    environment().putAll(System.getenv())
+                }
                 .start()
 
             var hasOutput = false
