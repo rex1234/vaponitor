@@ -95,6 +95,7 @@ fun Routing.indexRoute(
                 yAxis = listOf(
                     GraphData.YAxisData(
                         name = "Temperature",
+                        max = 100,
                         data = dhtTemp,
                         formattedValues = dhtTemp.map { "%.2f °C".format(it ?: 0f) },
                     ),

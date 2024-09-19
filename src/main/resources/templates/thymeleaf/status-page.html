@@ -47,8 +47,8 @@
             </div>
         </div>
 
-        <div class="row row-cards" style="margin-top: 8px" th:with="subGraphs=${graphs.subList(1, graphs.size())}">
-            <div class="col-md-7" style="margin-top: 16px" th:each="graph : ${subGraphs}">
+        <div class="row row-cards" style="margin-top: 8px">
+            <div class="col-md-6" style="margin-top: 16px" th:with="graph=${graphs[1]}">
                 <div class="card">
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
@@ -62,7 +62,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-6" style="margin-top: 16px" th:with="graph=${graphs[2]}">
+                <div class="card">
+                    <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader" th:text="${graph.title}"></div>
+                        </div>
+                        <div class="d-flex">
+                            <h3 class="card-title" th:text="${graph.description}"></h3>
+                        </div>
+                        <div th:id="'chart-' + ${graph.id}"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

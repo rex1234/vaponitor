@@ -12,13 +12,14 @@ data class GraphDefinition<T>(
     data class GraphData<T>(
         val graphName: String,
         val xAxis: List<T?>,
-        val yAxis: List<YAxisData>
+        val yAxis: List<YAxisData>,
     ) {
 
         data class YAxisData(
             val name: String,
             val data: List<Float?>,
             val formattedValues: List<String?>,
+            val max: Int = 100,
         )
     }
 
