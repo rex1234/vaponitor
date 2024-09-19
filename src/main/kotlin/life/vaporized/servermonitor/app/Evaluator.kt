@@ -23,11 +23,13 @@ class Evaluator(
         get() = monitorConfig.appDefinitions.map(::AppRunningMonitor)
 
     suspend fun evaluate(): MonitorEvaluation = withContext(Dispatchers.IO) {
+        logger.info("Evaluating resource monitors: ${resourceMonitors.joinToString(", ") { it.name }}")
+        logger.info("Evaluating app monitors: ${appMonitors.joinToString(", ") { it.name }}")
+
         val resources = resourceMonitors.map { monitor ->
             async {
-                logger.debug("Evaluating: ${monitor.name}")
                 monitor.evaluate().onEach {
-                    logger.debug("Evaluation finished: {}", it.toString())
+                    logger.debug("Evaluation finished: ${it.id} - ${it.current}/${it.total}")
                 }
             }
         }
@@ -35,7 +37,7 @@ class Evaluator(
             async {
                 logger.debug("Evaluating: ${monitor.name}")
                 monitor.evaluate().onEach {
-                    logger.debug("Evaluation finished: {}", it.toString())
+                    logger.debug("Evaluation finished: ${it.id} - isError: ${it.isError}")
                 }
             }
         }

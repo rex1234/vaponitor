@@ -15,4 +15,5 @@
     <logger name="dev.kord" level="INFO"/>
     <logger name="org.sqlite.core.NativeDB" level="INFO"/>
     <logger name="EXPOSED" level="INFO"/>
+    <logger name="Exposed" level="INFO"/>
 </configuration>

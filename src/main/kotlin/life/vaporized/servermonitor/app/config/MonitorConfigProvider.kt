@@ -8,6 +8,7 @@ import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
+import life.vaporized.servermonitor.app.util.getLogger
 import net.mamoe.yamlkt.Yaml
 import java.io.File
 
@@ -23,6 +24,8 @@ class MonitorConfigProvider {
             Dht22Monitor,
         )
     }
+
+    private val logger = getLogger()
 
     private val monitorConfig by lazy {
         try {
