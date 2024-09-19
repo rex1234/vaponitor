@@ -7,7 +7,7 @@ import io.ktor.server.thymeleaf.ThymeleafContent
 
 suspend fun errorRoute(
     call: ApplicationCall,
-    cause: Throwable? = null,
+    exception: Throwable? = null,
     code: HttpStatusCode? = null,
 ) {
     call.respond(
@@ -15,7 +15,7 @@ suspend fun errorRoute(
             template = "error",
             model = mapOf(
                 "code" to ("HTTP ${code?.value?.toString() ?: "500"}"),
-                "message" to (cause?.cause?.message ?: "Unknown error"),
+                "message" to (exception?.cause?.message ?: "Unknown error"),
             ),
         )
     )

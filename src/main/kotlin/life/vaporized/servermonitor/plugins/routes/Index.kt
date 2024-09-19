@@ -101,7 +101,7 @@ fun Routing.indexRoute(
                     GraphData.YAxisData(
                         name = "Humidity",
                         data = dhtHum,
-                        formattedValues = dhtHum.map { "%.2f %".format(it ?: 0f) },
+                        formattedValues = dhtHum.map { "%.2f %%".format(it ?: 0f) },
                     ),
                 )
             )
