@@ -4,7 +4,6 @@ import life.vaporized.servermonitor.app.monitor.IResourceMonitor
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.model.NumberResourceDefinition
 import life.vaporized.servermonitor.app.util.getLogger
-import java.util.concurrent.TimeUnit
 
 /**
  * Executes a command yielding int value that can be shown in a graph
@@ -37,7 +36,6 @@ open class BashNumberResourceMonitor(
 
             val processResult = process.inputStream.bufferedReader().use { reader ->
                 val value = reader.readText().trim()
-                process.waitFor(5, TimeUnit.SECONDS)
                 value.toFloatOrNull() ?: -1f
             }
 

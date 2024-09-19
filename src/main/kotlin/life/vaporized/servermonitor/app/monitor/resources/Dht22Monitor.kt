@@ -20,8 +20,8 @@ object Dht22Monitor : BashNumberResourceMonitor(
     val logger = getLogger()
 
     override val id = "RDht"
-    override val name: String = "Environment temperature"
-    override val message: String = "Current DHT22 temperature"
+    override val name: String = "Environmental sensors"
+    override val message: String = "Current DHT22 sensor values"
 
     override suspend fun evaluate(): List<MonitorStatus.ResourceStatus> {
         return getResourceValue().let { (temp, humidity) ->
@@ -55,22 +55,25 @@ object Dht22Monitor : BashNumberResourceMonitor(
                     environment().putAll(System.getenv())
                 }.start()
 
+            process.waitFor(5, TimeUnit.SECONDS)
+
             val processResult = process.inputStream.bufferedReader().use { reader ->
                 val eval = reader.readText().trim()
-                process.waitFor(5, TimeUnit.SECONDS)
                 eval.split(" ").map {
                     it.toFloat()
                 }.let { Pair(it[0], it[1]) }
             }
 
-            val errors = process.errorStream.bufferedReader().readText()
-            if (errors.isNotEmpty()) {
-                logger.error("Error while executing ${command.name} command: $errors")
+            process.errorStream.bufferedReader().use {
+                val errors = it.readText().trim()
+                if (errors.isNotEmpty()) {
+                    logger.error("Error while executing ${command.name} command: $errors")
+                }
             }
 
             return processResult
         } catch (e: Exception) {
-            logger.error("Failed to get ${command.name} value", e)
+            logger.error("Failed to get DHT22 value", e)
             return null to null
         }
     }
