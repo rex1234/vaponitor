@@ -45,7 +45,7 @@ object DiskUsageMonitor : IResourceMonitor {
                     val usableSpace = fileStore.usableSpace / (1024 * 1024 * 1024).toFloat()
                     add(Triple(fileStore.toString(), usableSpace, totalSpace))
                 } catch (e: Exception) {
-                    logger.debug("Failed to get disk usage", e)
+                    logger.error("Error while getting disk usage", e)
                 }
             }
         }

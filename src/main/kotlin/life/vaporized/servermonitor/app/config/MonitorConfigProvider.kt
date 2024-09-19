@@ -30,7 +30,13 @@ class MonitorConfigProvider {
     private val monitorConfig by lazy {
         try {
             val yamlData = File(CONFIG_FILENAME).readText()
-            Yaml.Default.decodeFromString<MonitorConfig>(yamlData)
+            Yaml.Default.decodeFromString<MonitorConfig>(yamlData).also {
+                logger.info(
+                    "Loaded app monitors [{}] and resource [{}]",
+                    it.apps?.joinToString { app -> app.name } ?: "none",
+                    it.resources?.enabled?.joinToString() ?: "none"
+                )
+            }
         } catch (e: Exception) {
             throw IllegalStateException("Failed to load monitor config", e)
         }
