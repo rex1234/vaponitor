@@ -67,13 +67,13 @@
                         padding: 4,
                         formatter: function (value, opt) {
                             if (typeof opt === 'number') {
-                                return (opt * 20)
+                                return (opt * (y.max / 5))
                             }
                             return y.formattedValues[opt.dataPointIndex];
                         }
                     },
                     min: 0,
-                    max: y.max,
+                    max: 100,
                     tickAmount: 5,
                     opposite: i > 0,
                 }

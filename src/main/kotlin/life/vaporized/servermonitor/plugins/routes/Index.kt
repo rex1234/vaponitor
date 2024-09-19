@@ -46,7 +46,7 @@ fun Routing.indexRoute(
             it?.resourceWithId(RaspberryTempMonitor.id)?.usage
         }
         val dhtTemp = timelineEntries.map {
-            it?.resourceWithId(Dht22Monitor.tempId)?.usage
+            it?.resourceWithId(Dht22Monitor.tempId)?.current
         }
         val dhtHum = timelineEntries.map {
             it?.resourceWithId(Dht22Monitor.humidityId)?.usage
@@ -95,7 +95,7 @@ fun Routing.indexRoute(
                 yAxis = listOf(
                     GraphData.YAxisData(
                         name = "Temperature",
-                        max = 100,
+                        max = 60,
                         data = dhtTemp,
                         formattedValues = dhtTemp.map { "%.2f °C".format(it ?: 0f) },
                     ),
