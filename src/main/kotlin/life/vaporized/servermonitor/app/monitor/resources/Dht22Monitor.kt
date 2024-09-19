@@ -56,10 +56,11 @@ object Dht22Monitor : BashNumberResourceMonitor(
                 }.start()
 
             val processResult = process.inputStream.bufferedReader().use { reader ->
-                val temp = reader.readText().trim().toFloatOrNull()
-                val humidity = reader.readText().trim().toFloatOrNull()
+                val eval = reader.readText().trim()
                 process.waitFor(5, TimeUnit.SECONDS)
-                Pair(temp, humidity)
+                eval.split(" ").map {
+                    it.toFloat()
+                }.let { Pair(it[0], it[1]) }
             }
 
             val errors = process.errorStream.bufferedReader().readText()

@@ -16,5 +16,5 @@
     <logger name="org.sqlite.core.NativeDB" level="INFO"/>
     <logger name="EXPOSED" level="INFO"/>
     <logger name="Exposed" level="INFO"/>
-    <logger name="oshi.util.FileUtil " level="INFO"/>
+    <logger name="oshi.util.FileUtil" level="INFO"/>
 </configuration>
