@@ -34,7 +34,11 @@ class AppRunningMonitor(
             app.url?.let { isUrlReachable("http://$it") }
         }
         val isHttpsReachableHttps = async {
-            app.url?.let { isUrlReachable("https://$it") }
+            if (app.https) {
+                app.url?.let { isUrlReachable("https://$it") }
+            } else {
+                null
+            }
         }
         MonitorStatus.AppStatus(
             app = app,

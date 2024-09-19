@@ -18,7 +18,7 @@ sealed interface MonitorStatus {
         val message: String? = null,
     ) : MonitorStatus {
 
-        val isError
+        val isError: Boolean
             get() = !isRunning || isHttpReachable == false || isHttpsReachable == false
 
         override val id: String

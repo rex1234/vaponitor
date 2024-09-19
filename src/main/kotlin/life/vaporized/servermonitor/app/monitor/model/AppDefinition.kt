@@ -8,4 +8,10 @@ data class AppDefinition(
     val description: String,
     val command: String? = null,
     val url: String? = null,
-)
+    val https: Boolean = true,
+) {
+
+    val link: String
+        get() = if (https) "https://${url}" else "http://${url}"
+
+}
