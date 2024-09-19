@@ -13,6 +13,7 @@ import life.vaporized.servermonitor.app.monitor.model.GraphDefinition
 import life.vaporized.servermonitor.app.monitor.model.GraphDefinition.GraphData
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
@@ -44,6 +45,12 @@ fun Routing.indexRoute(
         val temp = timelineEntries.map {
             it?.resourceWithId(RaspberryTempMonitor.id)?.usage
         }
+        val dhtTemp = timelineEntries.map {
+            it?.resourceWithId(Dht22Monitor.tempId)?.usage
+        }
+        val dhtHum = timelineEntries.map {
+            it?.resourceWithId(Dht22Monitor.humidityId)?.usage
+        }
         val volumes = lastEval?.resources
             ?.filter { it.id.startsWith(DiskUsageMonitor.id) }
             ?: emptyList()
@@ -73,7 +80,28 @@ fun Routing.indexRoute(
                     GraphData.YAxisData(
                         name = "CPU Temperature",
                         data = temp,
-                        formattedValues = temp.map { "%.2f %%  °C".format(it ?: 0f) },
+                        formattedValues = temp.map { "%.2f °C".format(it ?: 0f) },
+                    ),
+                )
+            )
+        } else {
+            null
+        }
+
+        val sensorGraph = if (Dht22Monitor.id in enabledResources) {
+            GraphData(
+                graphName = "Sensors",
+                xAxis = timeline,
+                yAxis = listOf(
+                    GraphData.YAxisData(
+                        name = "Temperature",
+                        data = dhtTemp,
+                        formattedValues = dhtTemp.map { "%.2f °C".format(it ?: 0f) },
+                    ),
+                    GraphData.YAxisData(
+                        name = "Humidity",
+                        data = dhtHum,
+                        formattedValues = dhtHum.map { "%.2f %".format(it ?: 0f) },
                     ),
                 )
             )
@@ -90,10 +118,17 @@ fun Routing.indexRoute(
             tempGraph?.let {
                 GraphDefinition(
                     title = "Raspberry",
-                    description = "Temperature",
+                    description = "CPU Temperature",
                     data = it,
                 )
-            }
+            },
+            sensorGraph?.let {
+                GraphDefinition(
+                    title = "Sensors",
+                    description = "Temperature and humidity",
+                    data = it,
+                )
+            },
         )
 
         call.respond(

@@ -23,12 +23,15 @@ object Dht22Monitor : BashNumberResourceMonitor(
     override val name: String = "Environmental sensors"
     override val message: String = "Current DHT22 sensor values"
 
+    val tempId = "${id}Temp"
+    val humidityId = "${id}Humidity"
+
     override suspend fun evaluate(): List<MonitorStatus.ResourceStatus> {
         return getResourceValue().let { (temp, humidity) ->
             listOfNotNull(
                 temp?.let {
                     MonitorStatus.ResourceStatus(
-                        id = "${id}Temp",
+                        id = tempId,
                         name = name,
                         description = "Temperature",
                         current = it,
@@ -37,7 +40,7 @@ object Dht22Monitor : BashNumberResourceMonitor(
                 },
                 humidity?.let {
                     MonitorStatus.ResourceStatus(
-                        id = "${id}Humidity",
+                        id = humidityId,
                         name = name,
                         description = "Humidity",
                         current = it,
