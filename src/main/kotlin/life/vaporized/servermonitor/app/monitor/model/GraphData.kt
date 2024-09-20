@@ -20,6 +20,7 @@ data class GraphDefinition<T>(
             val data: List<Float?>,
             val formattedValues: List<String?>,
             val max: Int = 100,
+            val min: Int = 0,
         )
     }
 
