@@ -95,14 +95,16 @@ fun Routing.indexRoute(
                 yAxis = listOf(
                     GraphData.YAxisData(
                         name = "Temperature",
-                        max = 35,
-                        min = 10,
+                        max = (dhtTemp.filterNotNull().max() * 1.2 ?: 40f).toInt() / 5 * 5,
+                        min = (dhtTemp.filterNotNull().min() * 0.8 ?: 40f).toInt() / 5 * 5 + 5,
                         data = dhtTemp,
                         formattedValues = dhtTemp.map { "%.2f °C".format(it ?: 0f) },
                     ),
                     GraphData.YAxisData(
                         name = "Humidity",
                         data = dhtHum,
+                        max = (dhtHum.filterNotNull().max() * 1.2 ?: 40f).toInt() / 5 * 5,
+                        min = (dhtHum.filterNotNull().min() * 0.8 ?: 40f).toInt() / 5 * 5 + 5,
                         formattedValues = dhtHum.map { "%.2f %%".format(it ?: 0f) },
                     ),
                 )
