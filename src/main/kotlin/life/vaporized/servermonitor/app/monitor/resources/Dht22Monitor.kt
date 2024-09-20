@@ -27,7 +27,7 @@ object Dht22Monitor : BashNumberResourceMonitor(
     val humidityId = "${id}Humidity"
 
     override suspend fun evaluate(): List<MonitorStatus.ResourceStatus> {
-        return getResourceValue().let { (temp, humidity) ->
+        return getResourceValue(attempts = 3).let { (temp, humidity) ->
             listOfNotNull(
                 temp?.let {
                     MonitorStatus.ResourceStatus(
@@ -51,33 +51,39 @@ object Dht22Monitor : BashNumberResourceMonitor(
         }
     }
 
-    private fun getResourceValue(): Pair<Float?, Float?> {
-        try {
-            val process = ProcessBuilder(*command.command.toTypedArray())
-                .apply {
-                    environment().putAll(System.getenv())
-                }.start()
-
-            process.waitFor(5, TimeUnit.SECONDS)
-
-            val processResult = process.inputStream.bufferedReader().use { reader ->
-                val eval = reader.readText().trim()
-                eval.split(" ").map {
-                    it.toFloat()
-                }.let { Pair(it[0], it[1]) }
-            }
-
-            process.errorStream.bufferedReader().use {
-                val errors = it.readText().trim()
-                if (errors.isNotEmpty()) {
-                    logger.error("Error while executing ${command.name} command: $errors")
-                }
-            }
-
-            return processResult
-        } catch (e: Exception) {
-            logger.error("Failed to get DHT22 value", e)
+    private fun getResourceValue(attempts: Int = 1): Pair<Float?, Float?> = runCatching {
+        loadValues()
+    }.getOrElse { e ->
+        if (attempts > 1) {
+            getResourceValue(attempts - 1)
+        } else {
+            logger.error("Failed to get DHT22 value after multiple attempts", e)
             return null to null
         }
+    }
+
+    private fun loadValues(): Pair<Float, Float> {
+        val process = ProcessBuilder(*command.command.toTypedArray())
+            .apply {
+                environment().putAll(System.getenv())
+            }.start()
+
+        process.waitFor(5, TimeUnit.SECONDS)
+
+        val processResult = process.inputStream.bufferedReader().use { reader ->
+            val eval = reader.readText().trim()
+            eval.split(" ").map {
+                it.toFloat()
+            }.let { Pair(it[0], it[1]) }
+        }
+
+        process.errorStream.bufferedReader().use {
+            val errors = it.readText().trim()
+            if (errors.isNotEmpty()) {
+                logger.error("Error while executing ${command.name} command: $errors")
+            }
+        }
+
+        return processResult
     }
 }
