@@ -19,7 +19,9 @@ class CronJobRunner(
     fun start(action: suspend () -> Unit) {
         job = scope.launch {
             while (isActive) {
-                action()
+                launch {
+                    action()
+                }
                 delay(interval)
             }
         }
