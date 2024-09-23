@@ -80,7 +80,7 @@ class DiscordMonitorReporter(
 
         if (appStatus.isHttpsReachable == true && previousAppStatus.isHttpsReachable == false) {
             appendLine("    $EMOJI_GREEN_DOT HTTPS ping success")
-        } else if (appStatus.isHttpReachable == false) {
+        } else if (appStatus.isHttpsReachable == false) {
             appendLine("    $EMOJI_RED_DOT HTTPS ping failed")
         }
     }
