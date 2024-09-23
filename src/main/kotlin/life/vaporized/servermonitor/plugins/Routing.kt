@@ -9,11 +9,13 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.routing.routing
 import life.vaporized.servermonitor.app.util.getLogger
 import life.vaporized.servermonitor.plugins.routes.errorRoute
+import life.vaporized.servermonitor.plugins.routes.historyRoute
 import life.vaporized.servermonitor.plugins.routes.indexRoute
 import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val logger = getLogger()
+
     install(Resources)
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -24,8 +26,10 @@ fun Application.configureRouting() {
             errorRoute(call, code = status)
         }
     }
+
     routing {
         indexRoute(get(), get())
+        historyRoute(get(), get())
         staticResources("/", "static")
     }
 }

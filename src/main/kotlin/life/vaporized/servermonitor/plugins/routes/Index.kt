@@ -20,7 +20,7 @@ import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val TIMELINE_POINTS = 200
+private const val TIMELINE_POINTS = 200
 
 fun Routing.indexRoute(
     statusRepository: StatusRepository,
@@ -32,7 +32,7 @@ fun Routing.indexRoute(
         val lastEval = statusRepository.last()
 
         val history = statusRepository.history
-        val timeline = getTimeLine(monitorConfig.historyDuration)
+        val timeline = getTimeLine(monitorConfig.historyDuration, TIMELINE_POINTS)
 
         val timelineEntries = mapTimelineToEvaluations(timeline, history.elements)
 
@@ -183,7 +183,7 @@ fun mapTimelineToEvaluations(
         }
     }
 
-private fun getTimeLine(timelineDuration: Duration): List<Long> {
-    val stepSize = timelineDuration.inWholeMilliseconds / TIMELINE_POINTS
-    return (0 until TIMELINE_POINTS).map { System.currentTimeMillis() - it * stepSize }
+fun getTimeLine(timelineDuration: Duration, timeLinePoints: Int): List<Long> {
+    val stepSize = timelineDuration.inWholeMilliseconds / timeLinePoints
+    return (0 until timeLinePoints).map { System.currentTimeMillis() - it * stepSize }
 }

@@ -7,8 +7,10 @@ import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
@@ -80,34 +82,19 @@ class SqliteDb {
             val measurementIds = measurements.map { it[Tables.Measurement.id] }
             val apps = Tables.AppEntry
                 .selectAll()
-                .filter { it[Tables.AppEntry.measurementIdTable] in measurementIds }
+                .where { Tables.AppEntry.measurementIdTable inList measurementIds }
                 .groupBy { it[Tables.AppEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
-                    measurementId to entries.map {
-                        MonitorStatus.AppStatus(
-                            app = AppDefinition(it[Tables.AppEntry.appId], it[Tables.AppEntry.description] ?: ""),
-                            isRunning = it[Tables.AppEntry.isAlive],
-                            isHttpReachable = it[Tables.AppEntry.isHttpReachable],
-                            isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
-                        )
-                    }
+                    measurementId to entries.map(::appStatus)
                 }
                 .toMap()
 
             val resources = Tables.ResourceEntry
                 .selectAll()
-                .filter { it[Tables.ResourceEntry.measurementIdTable] in measurementIds }
+                .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
                 .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
-                    measurementId to entries.map {
-                        MonitorStatus.ResourceStatus(
-                            id = it[Tables.ResourceEntry.resourceId],
-                            name = it[Tables.ResourceEntry.resourceId],
-                            description = it[Tables.ResourceEntry.description] ?: "",
-                            current = it[Tables.ResourceEntry.usage],
-                            total = it[Tables.ResourceEntry.max],
-                        )
-                    }
+                    measurementId to entries.map(::resourceStatus)
                 }
                 .toMap()
 
@@ -122,4 +109,39 @@ class SqliteDb {
             }
         }
     }
+
+    suspend fun getResource(
+        resourceId: String,
+        startDate: Long,
+    ): List<MonitorStatus.ResourceStatus> = withContext(Dispatchers.IO) {
+        val measurementIds = Tables.Measurement
+            .select(Tables.Measurement.id)
+            .where { Tables.Measurement.timestamp greaterEq startDate }
+            .orderBy(Tables.Measurement.id, SortOrder.ASC)
+            .toList()
+
+        Tables.ResourceEntry
+            .selectAll()
+            .where {
+                (Tables.ResourceEntry.resourceId eq resourceId)
+                    .and(Tables.ResourceEntry.measurementIdTable inList measurementIds.map { it[Tables.Measurement.id] })
+            }
+            .toList()
+            .map(::resourceStatus)
+    }
+
+    private fun resourceStatus(it: ResultRow) = MonitorStatus.ResourceStatus(
+        id = it[Tables.ResourceEntry.resourceId],
+        name = it[Tables.ResourceEntry.resourceId],
+        description = it[Tables.ResourceEntry.description] ?: "",
+        current = it[Tables.ResourceEntry.usage],
+        total = it[Tables.ResourceEntry.max],
+    )
+
+    private fun appStatus(it: ResultRow) = MonitorStatus.AppStatus(
+        app = AppDefinition(it[Tables.AppEntry.appId], it[Tables.AppEntry.description] ?: ""),
+        isRunning = it[Tables.AppEntry.isAlive],
+        isHttpReachable = it[Tables.AppEntry.isHttpReachable],
+        isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
+    )
 }

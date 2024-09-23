@@ -4,6 +4,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
+import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.LimitedSizeDeque
 import life.vaporized.servermonitor.app.util.getLogger
 import life.vaporized.servermonitor.db.SqliteDb
@@ -31,6 +32,9 @@ class StatusRepository(
         history.add(evaluation)
         database.insertToDb(evaluation)
     }
+
+    suspend fun getResourceHistory(resourceId: String, startDate: Long): List<MonitorStatus.ResourceStatus> =
+        database.getResource(resourceId, startDate)
 
     suspend fun restore() = runCatching {
         logger.info("Restoring saved data")
