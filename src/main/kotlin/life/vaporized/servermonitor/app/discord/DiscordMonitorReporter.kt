@@ -28,7 +28,7 @@ class DiscordMonitorReporter(
             .forEach { currentStatus ->
                 val app = currentStatus.app
                 val previousStatus = previousAppEval.apps
-                    .firstOrNull { it.id == currentStatus.id } ?: return@forEach
+                    .find { it.id == currentStatus.id } ?: return@forEach
 
                 if (currentStatus == previousStatus) {
                     return@forEach

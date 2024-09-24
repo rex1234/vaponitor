@@ -95,7 +95,7 @@ fun Routing.indexRoute(
                 yAxis = listOf(
                     GraphData.YAxisData(
                         name = "Temperature",
-                        max = dhtTemp.filterNotNull().maxOrNull()?.let { (it * 1.1).toInt() / 5 * 5 } ?: 40,
+                        max = dhtTemp.filterNotNull().maxOrNull()?.let { (it * 1.1).toInt() / 5 * 5 + 5 } ?: 40,
                         min = dhtTemp.filterNotNull().minOrNull()?.let { it.toInt() / 5 * 5 } ?: 10,
                         data = dhtTemp,
                         formattedValues = dhtTemp.map { "%.2f °C".format(it ?: 0f) },
