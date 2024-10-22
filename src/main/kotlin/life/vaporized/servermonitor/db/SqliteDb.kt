@@ -60,11 +60,17 @@ class SqliteDb {
             val lastEntry = Tables.AppEntry
                 .selectAll()
                 .where { Tables.AppEntry.appId eq appStatus.id }
-                .orderBy(Tables.Measurement.id, SortOrder.DESC)
+                .orderBy(Tables.AppEntry.id, SortOrder.DESC)
                 .limit(1)
                 .lastOrNull()
 
-            if (lastEntry != null && toAppStatus(lastEntry) == appStatus) {
+            val count = Tables.AppEntry
+                .select(Tables.AppEntry.appId)
+                .where { Tables.AppEntry.appId eq appStatus.id }
+                .count()
+
+            val lastAppStatus = lastEntry?.let(::toAppStatus)
+            if (lastEntry != null && lastAppStatus?.copy(app = appStatus.app) == appStatus && count > 1) {
                 Tables.AppEntry.deleteWhere {
                     Tables.AppEntry.id eq lastEntry[Tables.AppEntry.id]
                 }

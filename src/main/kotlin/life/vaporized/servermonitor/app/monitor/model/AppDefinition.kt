@@ -13,5 +13,4 @@ data class AppDefinition(
 
     val link: String
         get() = if (https) "https://${url}" else "http://${url}"
-
 }
