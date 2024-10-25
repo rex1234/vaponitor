@@ -48,7 +48,7 @@
         </div>
 
         <div class="row row-cards" style="margin-top: 8px">
-            <div class="col-md-6" style="margin-top: 16px" th:with="graph=${graphs[1]}">
+            <div class="col-md-6" style="margin-top: 16px" th:if="${graphs.size() > 1}" th:with="graph=${graphs[1]}">
                 <div class="card">
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6" style="margin-top: 16px" th:with="graph=${graphs[2]}">
+            <div class="col-md-6" style="margin-top: 16px" th:if="${graphs.size() > 2}" th:with="graph=${graphs[2]}">
                 <div class="card">
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
