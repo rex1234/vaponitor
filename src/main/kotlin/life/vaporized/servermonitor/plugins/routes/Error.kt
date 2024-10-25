@@ -11,7 +11,8 @@ suspend fun errorRoute(
     code: HttpStatusCode? = null,
 ) {
     call.respond(
-        ThymeleafContent(
+        status = code ?: HttpStatusCode.InternalServerError,
+        message = ThymeleafContent(
             template = "error",
             model = mapOf(
                 "code" to ("HTTP ${code?.value?.toString() ?: "500"}"),
