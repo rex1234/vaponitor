@@ -115,7 +115,7 @@ class SqliteDb {
             val measurementIds = measurements.map { it[Tables.Measurement.id] }
             val apps = Tables.AppEntry
                 .selectAll()
-                .filter { it[Tables.AppEntry.measurementIdTable] in measurementIds }
+                .where { Tables.AppEntry.measurementIdTable inList measurementIds }
                 .groupBy { it[Tables.AppEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
                     measurementId to entries.map(::toAppStatus)
@@ -124,7 +124,7 @@ class SqliteDb {
 
             val resources = Tables.ResourceEntry
                 .selectAll()
-                .filter { it[Tables.ResourceEntry.measurementIdTable] in measurementIds }
+                .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
                 .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
                 .map { (measurementId, entries) ->
                     measurementId to entries.map(::toResourceStatus)
