@@ -3,6 +3,7 @@ package life.vaporized.servermonitor.app.monitor.resources
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.monitor.model.NumberResourceDefinition
 import life.vaporized.servermonitor.app.util.getLogger
+import life.vaporized.servermonitor.app.util.repeatOnError
 import java.util.concurrent.TimeUnit
 
 object Dht22Monitor : BashNumberResourceMonitor(
@@ -51,16 +52,13 @@ object Dht22Monitor : BashNumberResourceMonitor(
         }
     }
 
-    private fun getResourceValue(attempts: Int = 1): Pair<Float?, Float?> = runCatching {
-        loadValues()
-    }.getOrElse { e ->
-        if (attempts > 1) {
-            getResourceValue(attempts - 1)
-        } else {
+    private suspend fun getResourceValue(attempts: Int = 1): Pair<Float?, Float?> = repeatOnError(
+        default = null to null,
+        logError = { e ->
             logger.error("Failed to get DHT22 value after multiple attempts", e)
-            return null to null
-        }
-    }
+        },
+        action = ::loadValues,
+    )
 
     private fun loadValues(): Pair<Float, Float> {
         val process = ProcessBuilder(*command.command.toTypedArray())

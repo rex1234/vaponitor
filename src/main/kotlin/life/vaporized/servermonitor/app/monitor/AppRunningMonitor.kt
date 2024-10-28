@@ -7,9 +7,9 @@ import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.monitor.model.AppDefinition
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
+import life.vaporized.servermonitor.app.util.repeatOnError
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.IOException
 
 class AppRunningMonitor(
     private val app: AppDefinition,
@@ -78,13 +78,16 @@ class AppRunningMonitor(
             .url(url)
             .build()
 
-        try {
-            httpClient.newCall(request).execute().use { response ->
-                response.isSuccessful
-            }
-        } catch (e: IOException) {
-            logger.debug("URL check failed ($url) {}", e::class.simpleName)
-            false
-        }
+        repeatOnError(
+            default = false,
+            logError = { e ->
+                logger.error("Failed to check URL $url", e)
+            },
+            action = {
+                httpClient.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
+            },
+        )
     }
 }
