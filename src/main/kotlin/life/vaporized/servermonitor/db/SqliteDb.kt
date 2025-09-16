@@ -1,5 +1,6 @@
 package life.vaporized.servermonitor.db
 
+import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.monitor.model.AppDefinition
@@ -11,6 +12,8 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -19,7 +22,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class SqliteDb {
 
-    val logger = getLogger()
+    private val logger = getLogger()
 
     suspend fun init() = withContext(Dispatchers.IO) {
         logger.info("Initializing SQLite database")
@@ -157,4 +160,29 @@ class SqliteDb {
         isHttpReachable = it[Tables.AppEntry.isHttpReachable],
         isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
     )
+
+    suspend fun deleteOldMeasurements(duration: Duration) = withContext(Dispatchers.IO) {
+        transaction {
+            val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+
+            // Delete from AppEntry and ResourceEntry where measurementId is in the list of old measurementIds
+            val oldMeasurementIds = Tables.Measurement
+                .selectAll()
+                .where { Tables.Measurement.timestamp less threshold }
+                .orderBy(Tables.Measurement.id, SortOrder.ASC)
+                .map { it[Tables.Measurement.id] }
+
+            if (oldMeasurementIds.isNotEmpty()) {
+                Tables.AppEntry.deleteWhere {
+                    Tables.AppEntry.measurementIdTable inList oldMeasurementIds
+                }
+                Tables.ResourceEntry.deleteWhere {
+                    Tables.ResourceEntry.measurementIdTable inList oldMeasurementIds
+                }
+                Tables.Measurement.deleteWhere {
+                    Tables.Measurement.timestamp less threshold
+                }
+            }
+        }
+    }
 }

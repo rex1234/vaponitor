@@ -1,5 +1,6 @@
 package life.vaporized.servermonitor.app.config
 
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.decodeFromString
@@ -15,8 +16,10 @@ import java.io.File
 
 class MonitorConfigProvider {
 
-    private companion object {
+    companion object {
         const val CONFIG_FILENAME = "monitorconfig.yaml"
+
+        val CLEANUP_INTERVAL = 1.days
 
         val RESOURCE_MONITORS = listOf(
             CpuUsageMonitor,
@@ -52,6 +55,9 @@ class MonitorConfigProvider {
 
     val historyDuration
         get() = monitorConfig.historyDurationM.minutes
+
+    val dbPurgeDuration
+        get() = monitorConfig.dbPurgeDays.days
 
     val appDefinitions
         get() = monitorConfig.apps ?: emptyList()

@@ -12,6 +12,8 @@ class MonitorConfig(
     val resourceMonitorRefreshIntervalS: Int,
     @SerialName("history_duration_m")
     val historyDurationM: Int,
+    @SerialName("db_purge_days")
+    val dbPurgeDays: Int,
     @SerialName("apps")
     val apps: List<AppDefinition>?,
     @SerialName("resources")
