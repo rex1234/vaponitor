@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title th:text="${app != null ? app.name + ' - App Monitor Details' : 'App Monitor Details'}">App Monitor
+        Details</title>
+    <link rel="icon" type="image/x-icon" href="/img/favicon.png">
+    <!-- CSS files -->
+    <link href="/dist/css/tabler.min.css?1692870487" rel="stylesheet"/>
+    <link href="/dist/css/tabler-flags.min.css?1692870487" rel="stylesheet"/>
+    <link href="/dist/css/tabler-payments.min.css?1692870487" rel="stylesheet"/>
+    <link href="/dist/css/tabler-vendors.min.css?1692870487" rel="stylesheet"/>
+    <link href="/dist/css/demo.min.css?1692870487" rel="stylesheet"/>
+    <link href="/style.css" rel="stylesheet"/>
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+
+        :root {
+            --tblr-font-sans-serif: 'Inter Var', -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+        }
+
+        body {
+            font-feature-settings: "cv03", "cv04", "cv11";
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-up {
+            background-color: #2fb344;
+        }
+
+        .status-down {
+            background-color: #d63384;
+        }
+
+        .uptime-chart {
+            height: 60px;
+            display: flex;
+            align-items: end;
+            gap: 2px;
+        }
+
+        .uptime-bar {
+            width: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+
+        .uptime-bar.up {
+            background-color: #2fb344;
+        }
+
+        .uptime-bar.down {
+            background-color: #d63384;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <!-- Navbar -->
+    <header class="navbar navbar-expand-md d-print-none">
+        <div class="container-xl">
+            <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                <a href="/" th:text="${appName}">Server Monitor</a>
+            </h1>
+            <div class="navbar-nav flex-row order-md-last">
+                <div class="nav-item">
+                    <a href="/" class="btn btn-outline-primary">← Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-wrapper">
+        <!-- Page header -->
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title">
+                            <span class="status-indicator" th:class="${statusIndicatorClass}"></span>
+                            <span th:text="${app != null ? app.name : 'App Monitor'}">App Monitor</span>
+                        </h2>
+                        <div class="page-subtitle"
+                             th:text="${app != null ? app.description : 'Application monitoring details'}">Application
+                            monitoring details
+                        </div>
+                    </div>
+                    <div class="col-auto ms-auto">
+                        <div class="btn-list">
+                            <span th:class="${statusBadgeClass}" th:text="${statusBadge}">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row row-deck row-cards">
+                    <!-- Current Status Card -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Current Status</h3>
+                                <div class="card-actions">
+                                    <small class="text-muted" th:text="'Last updated: ' + ${lastUpdated}">Last updated:
+                                        Now</small>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Application URL</label>
+                                            <div>
+                                                <a th:if="${app != null and app.url != null}" th:href="${app.link}"
+                                                   th:text="${app.url}" target="_blank" class="text-primary">N/A</a>
+                                                <span th:unless="${app != null and app.url != null}" class="text-muted">N/A</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label class="form-label">Process Running</label>
+                                            <div>
+                                                <span class="badge bg-success"
+                                                      th:if="${currentStatus != null and currentStatus.isRunning}">Yes</span>
+                                                <span class="badge bg-danger"
+                                                      th:unless="${currentStatus != null and currentStatus.isRunning}">No</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">HTTP Reachable</label>
+                                            <div>
+                                                <span class="badge bg-success"
+                                                      th:if="${currentStatus != null and currentStatus.isHttpReachable == true}">Yes</span>
+                                                <span class="badge bg-danger"
+                                                      th:if="${currentStatus != null and currentStatus.isHttpReachable == false}">No</span>
+                                                <span class="badge bg-secondary"
+                                                      th:if="${currentStatus == null or currentStatus.isHttpReachable == null}">N/A</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">HTTPS Reachable</label>
+                                            <div>
+                                                <span class="badge bg-success"
+                                                      th:if="${currentStatus != null and currentStatus.isHttpsReachable == true}">Yes</span>
+                                                <span class="badge bg-danger"
+                                                      th:if="${currentStatus != null and currentStatus.isHttpsReachable == false}">No</span>
+                                                <span class="badge bg-secondary"
+                                                      th:if="${currentStatus == null or currentStatus.isHttpsReachable == null}">N/A</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uptime Statistics Card -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Uptime Statistics</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Uptime Percentage</label>
+                                            <div class="h2 mb-0" th:text="${uptimePercentage + '%'}">0%</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total Checks</label>
+                                            <div class="h3 mb-0" th:text="${totalEntries}">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Successful Checks</label>
+                                            <div class="h3 mb-0 text-success" th:text="${upEntries}">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Failed Checks</label>
+                                            <div class="h3 mb-0 text-danger" th:text="${totalEntries - upEntries}">0
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Availability History Card -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Availability History</h3>
+                                <div class="card-actions">
+                                    <small class="text-muted">Green = Up, Red = Down</small>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="uptime-chart">
+                                    <div th:each="entry : ${history}"
+                                         class="uptime-bar"
+                                         th:class="${entry.isUp ? 'uptime-bar up' : 'uptime-bar down'}"
+                                         th:title="${entry.time + ' - ' + (entry.isUp ? 'Up' : 'Down')}"
+                                         style="height: 100%;">
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">Most recent entries are on the right</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Events Table -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Events</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-vcenter card-table">
+                                        <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Status</th>
+                                            <th>Process</th>
+                                            <th>HTTP</th>
+                                            <th>HTTPS</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="entry, iterStat : ${history}"
+                                            th:if="${iterStat.index >= (history.size() - 20)}">
+                                            <td th:text="${entry.time}">Time</td>
+                                            <td>
+                                                <span class="badge bg-success" th:if="${entry.isUp}">Up</span>
+                                                <span class="badge bg-danger" th:unless="${entry.isUp}">Down</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success" th:if="${entry.isRunning}">✓</span>
+                                                <span class="badge bg-danger" th:unless="${entry.isRunning}">✗</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success" th:if="${entry.isHttpReachable == true}">✓</span>
+                                                <span class="badge bg-danger" th:if="${entry.isHttpReachable == false}">✗</span>
+                                                <span class="badge bg-secondary"
+                                                      th:if="${entry.isHttpReachable == null}">-</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success"
+                                                      th:if="${entry.isHttpsReachable == true}">✓</span>
+                                                <span class="badge bg-danger"
+                                                      th:if="${entry.isHttpsReachable == false}">✗</span>
+                                                <span class="badge bg-secondary"
+                                                      th:if="${entry.isHttpsReachable == null}">-</span>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Libs JS -->
+<script src="/dist/js/tabler.min.js?1692870487" defer></script>
+</body>
+</html>

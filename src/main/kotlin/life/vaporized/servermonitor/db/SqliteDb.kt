@@ -185,4 +185,28 @@ class SqliteDb {
             }
         }
     }
+
+    suspend fun getAppHistory(
+        appId: String,
+        numberOfEntries: Int = 100,
+    ): List<Pair<Long, MonitorStatus.AppStatus>> = withContext(Dispatchers.IO) {
+        logger.debug("Getting app history for $appId with $numberOfEntries entries")
+
+        transaction {
+            val results = Tables.AppEntry
+                .innerJoin(Tables.Measurement)
+                .selectAll()
+                .where { Tables.AppEntry.appId eq appId }
+                .orderBy(Tables.Measurement.timestamp, SortOrder.DESC)
+                .limit(numberOfEntries)
+                .toList()
+                .reversed()
+
+            results.map { row ->
+                val timestamp = row[Tables.Measurement.timestamp]
+                val appStatus = toAppStatus(row)
+                timestamp to appStatus
+            }
+        }
+    }
 }

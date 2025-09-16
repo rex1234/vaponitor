@@ -10,7 +10,9 @@
             </span>
         </div>
         <div class="col">
-            <h2 class="page-title" th:text="${appStatus.name}"></h2>
+            <h2 class="page-title">
+                <a th:href="'/app/' + ${appStatus.id}" th:text="${appStatus.name}" class="text-decoration-none"></a>
+            </h2>
             <div class="text-secondary" style="margin-top: 5px">
                 <ul class="list-inline list-inline-dots mb-0">
                     <li class="list-inline-item">
