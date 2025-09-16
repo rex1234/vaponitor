@@ -124,7 +124,7 @@
                                         <div class="mb-3">
                                             <label class="form-label">Application URL</label>
                                             <div>
-                                                <a th:if="${app != null and app.url != null}" th:href="${app.link}"
+                                                <a th:if="${app != null and app.link != null}" th:href="${app.link}"
                                                    th:text="${app.url}" target="_blank" class="text-primary">N/A</a>
                                                 <span th:unless="${app != null and app.url != null}" class="text-muted">N/A</span>
                                             </div>
@@ -239,7 +239,10 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Recent Events</h3>
+                                <h3 class="card-title">Recent Events (Database Changes)</h3>
+                                <div class="card-actions">
+                                    <small class="text-muted">Shows actual status changes as stored in database</small>
+                                </div>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
@@ -254,8 +257,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr th:each="entry, iterStat : ${history}"
-                                            th:if="${iterStat.index >= (history.size() - 20)}">
+                                        <tr th:each="entry : ${rawHistory}">
                                             <td th:text="${entry.time}">Time</td>
                                             <td>
                                                 <span class="badge bg-success" th:if="${entry.isUp}">Up</span>

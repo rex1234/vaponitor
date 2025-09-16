@@ -20,6 +20,9 @@ fun Routing.appDetailsRoute(database: SqliteDb) {
 
         val history = database.getAppHistory(appId, 500)
 
+        // Get raw change entries for the Recent Events table (last 100 actual changes)
+        val rawChangeEntries = database.getAppChangeHistory(appId, 100)
+
         if (history.isEmpty()) {
             return@get call.respond(
                 status = HttpStatusCode.NotFound,
@@ -29,6 +32,7 @@ fun Routing.appDetailsRoute(database: SqliteDb) {
 
         val appStatus = history.last().second
         val dateFormat = SimpleDateFormat("MMM dd, HH:mm")
+        val lastUpdatedTime = history.last().first // Get timestamp from the most recent entry
 
         // Calculate uptime statistics
         val totalEntries = history.size
@@ -60,15 +64,27 @@ fun Routing.appDetailsRoute(database: SqliteDb) {
             "app" to appStatus.app,
             "currentStatus" to appStatus,
             "history" to timelineData,
+            "rawHistory" to rawChangeEntries.map { (timestamp, status) ->
+                mapOf(
+                    "timestamp" to timestamp,
+                    "time" to dateFormat.format(Date(timestamp)),
+                    "isUp" to (status.isAlive && status.isHttpReachable != false && status.isHttpsReachable != false),
+                    "isRunning" to status.isRunning,
+                    "isHttpReachable" to status.isHttpReachable,
+                    "isHttpsReachable" to status.isHttpsReachable
+                )
+            },
             "uptimePercentage" to "%.2f".format(uptimePercentage),
             "totalEntries" to totalEntries,
             "upEntries" to upEntries,
-            "lastUpdated" to SimpleDateFormat.getTimeInstance().format(Date()),
+            "lastUpdated" to SimpleDateFormat.getTimeInstance().format(Date(lastUpdatedTime)),
             "isCurrentlyUp" to isCurrentlyUp,
             "statusIndicatorClass" to statusIndicatorClass,
             "statusBadge" to statusBadge,
             "statusBadgeClass" to statusBadgeClass
         )
+
+        println(templateModel)
 
         call.respond(
             ThymeleafContent(

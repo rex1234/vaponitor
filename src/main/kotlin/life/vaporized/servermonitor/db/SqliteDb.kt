@@ -3,6 +3,7 @@ package life.vaporized.servermonitor.db
 import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.AppDefinition
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
@@ -20,7 +21,9 @@ import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class SqliteDb {
+class SqliteDb(
+    private val monitorConfig: MonitorConfigProvider,
+) {
 
     private val logger = getLogger()
 
@@ -146,19 +149,20 @@ class SqliteDb {
         }
     }
 
-    private fun toResourceStatus(it: ResultRow) = MonitorStatus.ResourceStatus(
-        id = it[Tables.ResourceEntry.resourceId],
-        name = it[Tables.ResourceEntry.resourceId],
-        description = it[Tables.ResourceEntry.description] ?: "",
-        current = it[Tables.ResourceEntry.usage],
-        total = it[Tables.ResourceEntry.max],
+    private fun toResourceStatus(result: ResultRow) = MonitorStatus.ResourceStatus(
+        id = result[Tables.ResourceEntry.resourceId],
+        name = result[Tables.ResourceEntry.resourceId],
+        description = result[Tables.ResourceEntry.description] ?: "",
+        current = result[Tables.ResourceEntry.usage],
+        total = result[Tables.ResourceEntry.max],
     )
 
-    private fun toAppStatus(it: ResultRow) = MonitorStatus.AppStatus(
-        app = AppDefinition(it[Tables.AppEntry.appId], it[Tables.AppEntry.description] ?: ""),
-        isRunning = it[Tables.AppEntry.isAlive],
-        isHttpReachable = it[Tables.AppEntry.isHttpReachable],
-        isHttpsReachable = it[Tables.AppEntry.isHttpsReachable],
+    private fun toAppStatus(result: ResultRow) = MonitorStatus.AppStatus(
+        app = monitorConfig.appDefinitions.firstOrNull { app -> result[Tables.AppEntry.appId] == "A${app.name}" }
+            ?: AppDefinition(result[Tables.AppEntry.appId], result[Tables.AppEntry.description] ?: ""),
+        isRunning = result[Tables.AppEntry.isAlive],
+        isHttpReachable = result[Tables.AppEntry.isHttpReachable],
+        isHttpsReachable = result[Tables.AppEntry.isHttpsReachable],
     )
 
     suspend fun deleteOldMeasurements(duration: Duration) = withContext(Dispatchers.IO) {
@@ -193,16 +197,80 @@ class SqliteDb {
         logger.debug("Getting app history for $appId with $numberOfEntries entries")
 
         transaction {
-            val results = Tables.AppEntry
+            // Get all status changes for this app, ordered by timestamp
+            val changeEntries = Tables.AppEntry
+                .innerJoin(Tables.Measurement)
+                .selectAll()
+                .where { Tables.AppEntry.appId eq appId }
+                .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                .toList()
+
+            if (changeEntries.isEmpty()) {
+                return@transaction emptyList()
+            }
+
+            // Convert to status changes with timestamps
+            val statusChanges = changeEntries.map { row ->
+                val timestamp = row[Tables.Measurement.timestamp]
+                val appStatus = toAppStatus(row)
+                timestamp to appStatus
+            }
+
+            // Generate timeline from the last change up to now
+            val currentTime = System.currentTimeMillis()
+            val timeRange = if (statusChanges.isNotEmpty()) {
+                val oldestTime = statusChanges.first().first
+                val timeSpan = currentTime - oldestTime
+                val step = maxOf(timeSpan / numberOfEntries, 60000L) // At least 1 minute steps
+
+                // Generate timeline points from oldest to newest
+                (0..numberOfEntries).map { i ->
+                    oldestTime + (i * step)
+                }.filter { it <= currentTime }
+            } else {
+                listOf(currentTime)
+            }
+
+            // Fill in the timeline with the correct status at each point
+            val filledHistory = mutableListOf<Pair<Long, MonitorStatus.AppStatus>>()
+            var currentStatusIndex = 0
+
+            for (timePoint in timeRange) {
+                // Find the most recent status change before or at this time point
+                while (currentStatusIndex < statusChanges.size - 1 &&
+                    statusChanges[currentStatusIndex + 1].first <= timePoint
+                ) {
+                    currentStatusIndex++
+                }
+
+                if (currentStatusIndex < statusChanges.size) {
+                    val currentStatus = statusChanges[currentStatusIndex].second
+                    filledHistory.add(timePoint to currentStatus)
+                }
+            }
+
+            // Take the most recent entries up to numberOfEntries
+            filledHistory.takeLast(numberOfEntries)
+        }
+    }
+
+    suspend fun getAppChangeHistory(
+        appId: String,
+        numberOfEntries: Int = 100,
+    ): List<Pair<Long, MonitorStatus.AppStatus>> = withContext(Dispatchers.IO) {
+        logger.debug("Getting app change history for $appId with $numberOfEntries entries")
+
+        transaction {
+            // Get the actual status changes as stored in the database, ordered by timestamp (newest first)
+            val changeEntries = Tables.AppEntry
                 .innerJoin(Tables.Measurement)
                 .selectAll()
                 .where { Tables.AppEntry.appId eq appId }
                 .orderBy(Tables.Measurement.timestamp, SortOrder.DESC)
                 .limit(numberOfEntries)
                 .toList()
-                .reversed()
 
-            results.map { row ->
+            changeEntries.map { row ->
                 val timestamp = row[Tables.Measurement.timestamp]
                 val appStatus = toAppStatus(row)
                 timestamp to appStatus
