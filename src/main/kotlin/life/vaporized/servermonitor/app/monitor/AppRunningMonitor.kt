@@ -8,6 +8,7 @@ import life.vaporized.servermonitor.app.monitor.model.AppDefinition
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 import life.vaporized.servermonitor.app.util.repeatOnError
+import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -30,11 +31,18 @@ class AppRunningMonitor(
         val isProcessRunning = async {
             app.command?.let { isProcessRunning(app) } ?: true
         }
+
+        val basicAuth = if (app.basicAuthUsername != null && app.basicAuthPassword != null) {
+            Credentials.basic(app.basicAuthUsername, app.basicAuthPassword)
+        } else {
+            null
+        }
+
         val isReachableHttp = async {
-            app.httpUrl?.let { isUrlReachable(it) }
+            app.httpUrl?.let { isUrlReachable(it, basicAuth) }
         }
         val isHttpsReachableHttps = async {
-            app.httpsUrl?.let { isUrlReachable(it) }
+            app.httpsUrl?.let { isUrlReachable(it, basicAuth) }
         }
         MonitorStatus.AppStatus(
             app = app,
@@ -69,9 +77,17 @@ class AppRunningMonitor(
         }
     }
 
-    private suspend fun isUrlReachable(url: String): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun isUrlReachable(
+        url: String,
+        basicAuth: String?,
+    ): Boolean = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(url)
+            .also {
+                if (basicAuth != null) {
+                    it.header("Authorization", basicAuth)
+                }
+            }
             .build()
 
         repeatOnError(
