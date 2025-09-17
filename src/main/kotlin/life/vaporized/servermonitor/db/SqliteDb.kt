@@ -64,22 +64,20 @@ class SqliteDb(
         shouldDeleteLast: Boolean,
     ) {
         if (shouldDeleteLast) {
-            val lastEntry = Tables.AppEntry
+            val lastEntries = Tables.AppEntry
                 .selectAll()
                 .where { Tables.AppEntry.appId eq appStatus.id }
                 .orderBy(Tables.AppEntry.id, SortOrder.DESC)
-                .limit(1)
-                .lastOrNull()
+                .limit(2)
+                .toList()
 
-            val count = Tables.AppEntry
-                .select(Tables.AppEntry.appId)
-                .where { Tables.AppEntry.appId eq appStatus.id }
-                .count()
+            val lastEntriesMapped = lastEntries.map { result ->
+                toAppStatus(result).copy(app = appStatus.app)
+            }
 
-            val lastAppStatus = lastEntry?.let(::toAppStatus)
-            if (lastEntry != null && lastAppStatus?.copy(app = appStatus.app) == appStatus && count > 1) {
+            if (lastEntries.size == 2 && lastEntriesMapped.all { it == appStatus }) {
                 Tables.AppEntry.deleteWhere {
-                    Tables.AppEntry.id eq lastEntry[Tables.AppEntry.id]
+                    Tables.AppEntry.id eq lastEntries[0][Tables.AppEntry.id]
                 }
             }
         }
