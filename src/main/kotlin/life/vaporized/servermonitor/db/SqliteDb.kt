@@ -189,71 +189,7 @@ class SqliteDb(
         }
     }
 
-    suspend fun getAppHistory(
-        appId: String,
-        numberOfEntries: Int = 100,
-    ): List<Pair<Long, MonitorStatus.AppStatus>> = withContext(Dispatchers.IO) {
-        logger.debug("Getting app history for $appId with $numberOfEntries entries")
-
-        transaction {
-            // Get all status changes for this app, ordered by timestamp
-            val changeEntries = Tables.AppEntry
-                .innerJoin(Tables.Measurement)
-                .selectAll()
-                .where { Tables.AppEntry.appId eq appId }
-                .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
-                .toList()
-
-            if (changeEntries.isEmpty()) {
-                return@transaction emptyList()
-            }
-
-            // Convert to status changes with timestamps
-            val statusChanges = changeEntries.map { row ->
-                val timestamp = row[Tables.Measurement.timestamp]
-                val appStatus = toAppStatus(row)
-                timestamp to appStatus
-            }
-
-            // Generate timeline from the last change up to now
-            val currentTime = System.currentTimeMillis()
-            val timeRange = if (statusChanges.isNotEmpty()) {
-                val oldestTime = statusChanges.first().first
-                val timeSpan = currentTime - oldestTime
-                val step = maxOf(timeSpan / numberOfEntries, 60000L) // At least 1 minute steps
-
-                // Generate timeline points from oldest to newest
-                (0..numberOfEntries).map { i ->
-                    oldestTime + (i * step)
-                }.filter { it <= currentTime }
-            } else {
-                listOf(currentTime)
-            }
-
-            // Fill in the timeline with the correct status at each point
-            val filledHistory = mutableListOf<Pair<Long, MonitorStatus.AppStatus>>()
-            var currentStatusIndex = 0
-
-            for (timePoint in timeRange) {
-                // Find the most recent status change before or at this time point
-                while (currentStatusIndex < statusChanges.size - 1 &&
-                    statusChanges[currentStatusIndex + 1].first <= timePoint
-                ) {
-                    currentStatusIndex++
-                }
-
-                if (currentStatusIndex < statusChanges.size) {
-                    val currentStatus = statusChanges[currentStatusIndex].second
-                    filledHistory.add(timePoint to currentStatus)
-                }
-            }
-
-            // Take the most recent entries up to numberOfEntries
-            filledHistory.takeLast(numberOfEntries)
-        }
-    }
-
-    suspend fun getAppChangeHistory(
+    suspend fun getAppStatusHistory(
         appId: String,
         numberOfEntries: Int = 100,
     ): List<Pair<Long, MonitorStatus.AppStatus>> = withContext(Dispatchers.IO) {

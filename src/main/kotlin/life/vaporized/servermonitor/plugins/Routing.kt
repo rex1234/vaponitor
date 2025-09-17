@@ -27,7 +27,7 @@ fun Application.configureRouting() {
     }
     routing {
         indexRoute(get(), get())
-        appDetailsRoute(get())
+        appDetailsRoute(get(), get())
         staticResources("/", "static")
     }
 }
