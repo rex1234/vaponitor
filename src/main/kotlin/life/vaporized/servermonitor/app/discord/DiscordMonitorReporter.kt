@@ -4,8 +4,8 @@ import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 
-private const val EMOJI_GREEN_DOT = "\uD83D\uDFE2"
-private const val EMOJI_RED_DOT = "\uD83D\uDD3B"
+private const val EMOJI_GREEN_DOT = "✓"
+private const val EMOJI_RED_DOT = "✘"
 
 class DiscordMonitorReporter(
     private val discordBot: DiscordBot,
