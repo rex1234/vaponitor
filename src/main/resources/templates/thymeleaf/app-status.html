@@ -46,7 +46,7 @@
                     <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTPS up' : 'HTTPS down'"></div>
                     <div class="h3 m-0">
                         <a th:if="${appStatus.app.httpsUrl != null}" th:href="${appStatus.app.httpsUrl}"
-                           th:text="${appStatus.app.httpsUrl}">
+                           th:text="${appStatus.app.httpsUrl}"></a>
                     </div>
                 </div>
             </div>
