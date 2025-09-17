@@ -26,16 +26,21 @@ fun Routing.appDetailsRoute(
             message = "App ID is required"
         )
 
-        // Get recent history for statistics (last 500 entries)
-        val recentHistory = statusRepository.history
+        val recentHistory = statusRepository.history.elements.filter {
+            it.appWithId(appId) != null
+        }
+
+        if (recentHistory.isEmpty()) {
+            return@get call.respond(
+                status = HttpStatusCode.NotFound,
+                message = "App not found or no history available"
+            )
+        }
 
         // Get raw change entries for the Recent Events table (last 100 actual changes)
         val rawChangeEntries = database.getAppStatusHistory(appId, 100)
-        3
-        val lastEntry = recentHistory.last ?: return@get call.respond(
-            status = HttpStatusCode.NotFound,
-            message = "App not found or no history available"
-        )
+
+        val lastEntry = recentHistory.last()
         val appStatus = lastEntry.appWithId(appId) ?: return@get call.respond(
             status = HttpStatusCode.BadRequest,
             message = "App was not evaluated"
@@ -45,12 +50,12 @@ fun Routing.appDetailsRoute(
 
         // Calculate uptime statistics from recent history
         val totalEntries = recentHistory.size
-        val upEntries = recentHistory.elements.count { it.appWithId(appId)?.isError == false }
+        val upEntries = recentHistory.count { it.appWithId(appId)?.isError == false }
         val uptimePercentage = if (totalEntries > 0) (upEntries.toDouble() / totalEntries * 100) else 0.0
 
         val availabilityHistory = generateTimeline(
             appId = appId,
-            evaluationHistory = recentHistory.elements,
+            evaluationHistory = recentHistory,
         )
 
         val templateModel: Map<String, Any> = mapOf(
