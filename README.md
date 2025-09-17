@@ -205,7 +205,6 @@ Access the monitoring dashboard at `http://localhost:8080`:
 - Real-time status indicators for all monitored applications
 - Historical graphs for resource usage
 - Responsive design using Tabler UI framework
-- Auto-refreshing data every 30 seconds
 
 ## Troubleshooting
 
@@ -237,15 +236,8 @@ files:
 java -jar build/libs/ktor-app.jar > servermonitor.log 2>&1
 ```
 
-## Contributing
-
-1. Follow Kotlin coding conventions
-2. Use detekt for code quality (configured in `detekt-config.yml`)
-3. Run tests before submitting: `./gradlew test`
-4. Ensure all new resource monitors implement the `IResourceMonitor` interface
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2025 Rex. All rights reserved.
+Copyright (c) 2025 Ján Mjartan (mjartan.jan@gmail.com). All rights reserved.
