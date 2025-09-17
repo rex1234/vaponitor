@@ -4,8 +4,8 @@ import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.monitor.model.MonitorStatus
 import life.vaporized.servermonitor.app.util.getLogger
 
-private const val EMOJI_GREEN_DOT = "✅"
-private const val EMOJI_RED_DOT = "❌"
+private const val EMOJI_GREEN_DOT = "\uD83D\uDFE2"
+private const val EMOJI_RED_DOT = "\uD83D\uDD3B"
 
 class DiscordMonitorReporter(
     private val discordBot: DiscordBot,
@@ -38,7 +38,7 @@ class DiscordMonitorReporter(
                     logger.info("Reporting error for $app on discord")
                     discordBot.sendMessage(errorMessage(currentStatus, previousStatus))
                 } else if (!currentStatus.isError && previousStatus.isError) {
-                    discordBot.sendMessage("**Application has fully recovered: ${app.name}**")
+                    discordBot.sendMessage("✅ **Application has fully recovered: ${app.name}**")
                 }
             }
     }
@@ -55,9 +55,9 @@ class DiscordMonitorReporter(
         previousAppStatus: MonitorStatus.AppStatus,
     ) = buildString {
         if (isPartlyRecovered(appStatus, previousAppStatus)) {
-            appendLine("**Application has partly recovered: ${appStatus.name}**")
+            appendLine("ℹ\uFE0F **Application has partly recovered: ${appStatus.name}**")
         } else {
-            appendLine("**Application error: ${appStatus.name}**")
+            appendLine("❌ **Application error: ${appStatus.name}**")
         }
         appendStatusList(appStatus, previousAppStatus)
     }
@@ -69,19 +69,19 @@ class DiscordMonitorReporter(
         if (appStatus.isRunning && !previousAppStatus.isRunning) {
             appendLine("    $EMOJI_GREEN_DOT Process is now running")
         } else if (!appStatus.isRunning) {
-            appendLine("    $EMOJI_RED_DOT Process is not running")
+            appendLine("    $EMOJI_RED_DOT Process is *not* running")
         }
 
         if (appStatus.isHttpReachable == true && previousAppStatus.isHttpReachable == false) {
-            appendLine("    $EMOJI_GREEN_DOT HTTP ping success")
+            appendLine("    $EMOJI_GREEN_DOT HTTP ping to ${appStatus.app.httpUrl} *success*")
         } else if (appStatus.isHttpReachable == false) {
-            appendLine("    $EMOJI_RED_DOT HTTP ping failed")
+            appendLine("    $EMOJI_RED_DOT HTTP ping to ${appStatus.app.httpUrl} *failed*")
         }
 
         if (appStatus.isHttpsReachable == true && previousAppStatus.isHttpsReachable == false) {
-            appendLine("    $EMOJI_GREEN_DOT HTTPS ping success")
+            appendLine("    $EMOJI_GREEN_DOT HTTPS ping ${appStatus.app.httpsUrl} success")
         } else if (appStatus.isHttpsReachable == false) {
-            appendLine("    $EMOJI_RED_DOT HTTPS ping failed")
+            appendLine("    $EMOJI_RED_DOT HTTPS ping ${appStatus.app.httpsUrl} failed")
         }
     }
 }

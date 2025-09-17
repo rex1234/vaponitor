@@ -20,9 +20,7 @@
                         <span class="text-red" th:if="${appStatus.isError}">Down</span>
                     </li>
                     <li class="list-inline-item">
-                        <a th:if="${appStatus.app.url != null}" th:href="${appStatus.app.link}"
-                           th:text="${appStatus.app.description}"></a>
-                        <span th:if="${appStatus.app.url == null}" th:text="${appStatus.app.description}"></span>
+                        <span th:text="${appStatus.app.description}"></span>
                     </li>
                 </ul>
             </div>
@@ -34,7 +32,10 @@
             <div class="card">
                 <div class="card-body" th:classappend="${!appStatus.isHttpReachable ? 'status-card-error' : ''}">
                     <div class="subheader" th:text="${appStatus.isHttpReachable} ? 'HTTP up' : 'HTTP down'"></div>
-                    <div class="h3 m-0" th:text="'http://' + ${appStatus.app.url}"></div>
+                    <div class="h3 m-0">
+                        <a th:if="${appStatus.app.httpUrl != null}" th:href="${appStatus.app.httpUrl}"
+                           th:text="${appStatus.app.httpUrl}"></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,7 +44,10 @@
                 <div class="card-body"
                      th:classappend="${!appStatus.isHttpsReachable ? 'status-card-error' : ''}">
                     <div class="subheader" th:text="${appStatus.isHttpsReachable} ? 'HTTPS up' : 'HTTPS down'"></div>
-                    <div class="h3 m-0" th:text="'https://' + ${appStatus.app.url}"></div>
+                    <div class="h3 m-0">
+                        <a th:if="${appStatus.app.httpsUrl != null}" th:href="${appStatus.app.httpsUrl}"
+                           th:text="${appStatus.app.httpsUrl}">
+                    </div>
                 </div>
             </div>
         </div>

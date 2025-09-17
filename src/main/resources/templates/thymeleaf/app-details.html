@@ -226,8 +226,10 @@
                                             <label class="form-label">Application URL</label>
                                             <div>
                                                 <a th:if="${app != null and app.link != null}" th:href="${app.link}"
-                                                   th:text="${app.url}" target="_blank" class="text-primary">N/A</a>
-                                                <span th:unless="${app != null and app.url != null}" class="text-muted">N/A</span>
+                                                   th:text="${app.httpUrl}" target="_blank"
+                                                   class="text-primary">N/A`</a>
+                                                <span th:unless="${app != null and app.httpUrl != null}"
+                                                      class="text-muted">N/A</span>
                                             </div>
                                         </div>
                                     </div>

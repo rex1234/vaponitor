@@ -22,7 +22,7 @@ class AppRunningMonitor(
         get() = app.name
 
     override val message: String
-        get() = app.url ?: ""
+        get() = app.httpUrl ?: ""
 
     override val id = name
 
@@ -31,14 +31,10 @@ class AppRunningMonitor(
             app.command?.let { isProcessRunning(app) } ?: true
         }
         val isReachableHttp = async {
-            app.url?.let { isUrlReachable("http://$it") }
+            app.httpUrl?.let { isUrlReachable(it) }
         }
         val isHttpsReachableHttps = async {
-            if (app.https) {
-                app.url?.let { isUrlReachable("https://$it") }
-            } else {
-                null
-            }
+            app.httpsUrl?.let { isUrlReachable(it) }
         }
         MonitorStatus.AppStatus(
             app = app,
