@@ -9,10 +9,10 @@ resources:
     - "RDisk"
 
 apps:
-  - name: CallingStation
-    description: "https://callingstation.net"
-    url: callingstation.net
-    https: pornhub.com
+  - name: Poker app
+    description: "Let's play poker"
+    url: "localhost:8080"
+    https: "callingstation.net"
 
   - name: Raspberry
     description: RP
@@ -20,4 +20,4 @@ apps:
 
   - name: Test fail
     description: CS
-    url: devcdfa.vaporized.life
+    url: fail.xxxxxx
