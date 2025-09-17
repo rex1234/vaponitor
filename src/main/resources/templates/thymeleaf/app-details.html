@@ -25,46 +25,116 @@
             font-feature-settings: "cv03", "cv04", "cv11";
         }
 
-        .status-indicator {
+        .status-indicator-animated {
+            display: inline-block;
+            position: relative;
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .status-indicator-animated .status-indicator-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
+            animation: status-indicator-pulse 2s infinite;
         }
 
-        .status-up {
+        .status-indicator-animated .status-indicator-circle:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .status-indicator-animated .status-indicator-circle:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .status-indicator-animated .status-indicator-circle:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .status-red .status-indicator-circle {
+            background-color: #b80505;
+        }
+
+        .status-green .status-indicator-circle {
             background-color: #2fb344;
         }
 
-        .status-down {
-            background-color: #d63384;
+        @keyframes status-indicator-pulse {
+            0% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
         }
 
         .uptime-chart {
-            height: 60px;
+            height: 80px;
             display: flex;
             align-items: end;
-            gap: 2px;
+            gap: 3px;
+            overflow-x: auto;
+            padding: 8px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
         }
 
         .uptime-bar {
             width: 4px;
-            background-color: #e9ecef;
+            min-width: 4px;
+            background-color: #ced4da;
             border-radius: 2px;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .uptime-bar:hover {
+            transform: scaleY(1.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
         .uptime-bar.up {
-            background-color: #2fb344;
+            background: linear-gradient(180deg, #48c774 0%, #2fb344 100%);
+            box-shadow: 0 1px 3px rgba(47, 179, 68, 0.3);
         }
 
         .uptime-bar.down {
-            background-color: #d63384;
+            background: linear-gradient(180deg, #ff6b6b 0%, #b80505 100%);
+            box-shadow: 0 1px 3px rgba(184, 5, 5, 0.3);
+        }
+
+        .uptime-bar.up:hover {
+            box-shadow: 0 2px 6px rgba(47, 179, 68, 0.4);
+        }
+
+        .uptime-bar.down:hover {
+            box-shadow: 0 2px 6px rgba(184, 5, 5, 0.4);
+        }
+
+        .badge {
+            color: white;
         }
     </style>
 </head>
 <body>
+<script src="/dist/js/demo-theme.min.js?1692870487"></script>
+
 <div class="page">
     <!-- Navbar -->
     <header class="navbar navbar-expand-md d-print-none">
@@ -73,6 +143,31 @@
                 <a href="/" th:text="${appName}">Server Monitor</a>
             </h1>
             <div class="navbar-nav flex-row order-md-last">
+                <div class="d-none d-md-flex">
+                    <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="bottom">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/moon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
+                             stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+                        </svg>
+                    </a>
+                    <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="bottom">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/sun -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
+                             stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+                            <path d="M3 12h1m8 -9v1m8 8h1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+                        </svg>
+                    </a>
+                </div>
                 <div class="nav-item">
                     <a href="/" class="btn btn-outline-primary">← Back to Dashboard</a>
                 </div>
@@ -87,7 +182,12 @@
                 <div class="row g-2 align-items-center">
                     <div class="col">
                         <h2 class="page-title">
-                            <span class="status-indicator" th:class="${statusIndicatorClass}"></span>
+                            <span class="status-indicator-animated"
+                                  th:classappend="${isCurrentlyUp ? 'status-green' : 'status-red'}">
+                                <span class="status-indicator-circle"></span>
+                                <span class="status-indicator-circle"></span>
+                                <span class="status-indicator-circle"></span>
+                            </span>
                             <span th:text="${app != null ? app.name : 'App Monitor'}">App Monitor</span>
                         </h2>
                         <div class="page-subtitle"

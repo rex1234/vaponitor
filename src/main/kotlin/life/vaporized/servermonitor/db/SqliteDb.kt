@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -270,6 +271,56 @@ class SqliteDb(
                 .limit(numberOfEntries)
                 .toList()
 
+            changeEntries.map { row ->
+                val timestamp = row[Tables.Measurement.timestamp]
+                val appStatus = toAppStatus(row)
+                timestamp to appStatus
+            }
+        }
+    }
+
+    suspend fun getAppHistoryInTimeRange(
+        appId: String,
+        startTime: Long,
+        endTime: Long
+    ): List<Pair<Long, MonitorStatus.AppStatus>> = withContext(Dispatchers.IO) {
+        logger.debug("Getting app history for $appId in time range $startTime to $endTime")
+
+        transaction {
+            // Get all status changes for this app within the time range, ordered by timestamp
+            val changeEntries = Tables.AppEntry
+                .innerJoin(Tables.Measurement)
+                .selectAll()
+                .where {
+                    (Tables.AppEntry.appId eq appId) and
+                            (Tables.Measurement.timestamp greaterEq startTime) and
+                            (Tables.Measurement.timestamp lessEq endTime)
+                }
+                .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                .toList()
+
+            // If no entries in range, try to get the most recent entry before the start time
+            if (changeEntries.isEmpty()) {
+                val lastEntryBeforeRange = Tables.AppEntry
+                    .innerJoin(Tables.Measurement)
+                    .selectAll()
+                    .where {
+                        (Tables.AppEntry.appId eq appId) and
+                                (Tables.Measurement.timestamp less startTime)
+                    }
+                    .orderBy(Tables.Measurement.timestamp, SortOrder.DESC)
+                    .limit(1)
+                    .firstOrNull()
+
+                return@transaction if (lastEntryBeforeRange != null) {
+                    val appStatus = toAppStatus(lastEntryBeforeRange)
+                    listOf(startTime to appStatus)
+                } else {
+                    emptyList()
+                }
+            }
+
+            // Convert to status changes with timestamps
             changeEntries.map { row ->
                 val timestamp = row[Tables.Measurement.timestamp]
                 val appStatus = toAppStatus(row)

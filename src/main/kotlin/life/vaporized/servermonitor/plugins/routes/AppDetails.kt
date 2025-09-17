@@ -11,44 +11,83 @@ import life.vaporized.servermonitor.db.SqliteDb
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Routing.appDetailsRoute(database: SqliteDb) {
+fun Routing.appDetailsRoute(
+    database: SqliteDb,
+) {
+
     get("/app/{appId}") {
         val appId = call.parameters["appId"] ?: return@get call.respond(
             status = HttpStatusCode.BadRequest,
             message = "App ID is required"
         )
 
-        val history = database.getAppHistory(appId, 500)
+        // Get recent history for statistics (last 500 entries)
+        val recentHistory = database.getAppHistory(appId, 500)
 
         // Get raw change entries for the Recent Events table (last 100 actual changes)
         val rawChangeEntries = database.getAppChangeHistory(appId, 100)
 
-        if (history.isEmpty()) {
+        if (recentHistory.isEmpty()) {
             return@get call.respond(
                 status = HttpStatusCode.NotFound,
                 message = "App not found or no history available"
             )
         }
 
-        val appStatus = history.last().second
+        val appStatus = recentHistory.last().second
         val dateFormat = SimpleDateFormat("MMM dd, HH:mm")
-        val lastUpdatedTime = history.last().first // Get timestamp from the most recent entry
+        val lastUpdatedTime = recentHistory.last().first // Get timestamp from the most recent entry
 
-        // Calculate uptime statistics
-        val totalEntries = history.size
+        // Calculate uptime statistics from recent history
+        val totalEntries = recentHistory.size
         val upEntries =
-            history.count { it.second.isAlive && it.second.isHttpReachable != false && it.second.isHttpsReachable != false }
+            recentHistory.count { it.second.isAlive && it.second.isHttpReachable != false && it.second.isHttpsReachable != false }
         val uptimePercentage = if (totalEntries > 0) (upEntries.toDouble() / totalEntries * 100) else 0.0
 
-        // Prepare timeline data for chart
-        val timelineData = history.map { (timestamp, status) ->
-            mapOf(
-                "timestamp" to timestamp,
-                "time" to dateFormat.format(Date(timestamp)),
-                "isUp" to (status.isAlive && status.isHttpReachable != false && status.isHttpsReachable != false),
-                "isRunning" to status.isRunning,
-                "isHttpReachable" to status.isHttpReachable,
-                "isHttpsReachable" to status.isHttpsReachable
+        // Generate 7-day timeline with 30-minute intervals for availability chart
+        val currentTime = System.currentTimeMillis()
+        val sevenDaysAgo = currentTime - (7 * 24 * 60 * 60 * 1000L) // 7 days in milliseconds
+        val thirtyMinutes = 30 * 60 * 1000L // 30 minutes in milliseconds
+
+        // Get all status changes in the last 7 days
+        val sevenDayHistory = database.getAppHistoryInTimeRange(appId, sevenDaysAgo, currentTime)
+
+        // Generate timeline points every 30 minutes for the last 7 days
+        val timelinePoints = mutableListOf<Long>()
+        var timePoint = sevenDaysAgo
+        while (timePoint <= currentTime) {
+            timelinePoints.add(timePoint)
+            timePoint += thirtyMinutes
+        }
+
+        // Fill in the timeline with the correct status at each 30-minute point
+        val availabilityHistory = mutableListOf<Map<String, Any>>()
+        var statusIndex = 0
+
+        for (point in timelinePoints) {
+            // Find the most recent status change before or at this time point
+            while (statusIndex < sevenDayHistory.size - 1 &&
+                sevenDayHistory[statusIndex + 1].first <= point
+            ) {
+                statusIndex++
+            }
+
+            val status = if (statusIndex < sevenDayHistory.size) {
+                sevenDayHistory[statusIndex].second
+            } else {
+                // If no status available, use the first available status
+                if (sevenDayHistory.isNotEmpty()) sevenDayHistory.first().second else appStatus
+            }
+
+            availabilityHistory.add(
+                mapOf(
+                    "timestamp" to point,
+                    "time" to dateFormat.format(Date(point)),
+                    "isUp" to (status.isAlive && status.isHttpReachable != false && status.isHttpsReachable != false),
+                    "isRunning" to status.isRunning,
+                    "isHttpReachable" to status.isHttpReachable,
+                    "isHttpsReachable" to status.isHttpsReachable
+                ) as Map<String, Any>
             )
         }
 
@@ -63,7 +102,7 @@ fun Routing.appDetailsRoute(database: SqliteDb) {
             "appName" to EnvConfig.appName,
             "app" to appStatus.app,
             "currentStatus" to appStatus,
-            "history" to timelineData,
+            "history" to availabilityHistory, // 7-day history with 30-minute intervals
             "rawHistory" to rawChangeEntries.map { (timestamp, status) ->
                 mapOf(
                     "timestamp" to timestamp,
