@@ -15,7 +15,7 @@ data class AppDefinition(
 ) {
 
     val httpUrl: String?
-        get() = _httpUrl?.let { "https://$it" }
+        get() = _httpUrl?.let { "http://$it" }
 
     val httpsUrl: String?
         get() = _httpsUrl?.let { "https://$it" }
