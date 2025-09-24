@@ -4,7 +4,7 @@
         <div th:insert="~{resource-status-cards :: resourceStatusCards(${lastEval}, ${enabledResources})}"></div>
 
         <div class="row row-cards" style="margin-top: 8px">
-            <div class="col-md-7" style="margin-top: 16px">
+            <div class="col-md-6" style="margin-top: 16px">
                 <div class="card">
                     <div th:insert="~{scripts/linechart :: lineChart(${graphs[0].id}, ${graphs[0].data})}"></div>
                     <div class="card-body">
@@ -18,7 +18,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Disk usage</h3>
