@@ -160,14 +160,17 @@
                             Environment
                         </div>
                         <div class="text-secondary">
-                            <div th:if="${dhtTempResource != null}">
+                            <span th:if="${dhtTempResource != null and dhtHumResource != null}">
+                                <span th:text="${#numbers.formatDecimal(dhtTempResource.current, 0, 'COMMA', 1, 'POINT')}">0.0</span>°C,
+                                <span th:text="${#numbers.formatDecimal(dhtHumResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span>% RH
+                            </span>
+                            <span th:if="${dhtTempResource != null and dhtHumResource == null}">
                                 <span th:text="${#numbers.formatDecimal(dhtTempResource.current, 0, 'COMMA', 1, 'POINT')}">0.0</span>°C
-                            </div>
-                            <div th:if="${dhtHumResource != null}">
-                                <span th:text="${#numbers.formatDecimal(dhtHumResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span>%
-                                RH
-                            </div>
-                            <div th:if="${dhtTempResource == null && dhtHumResource == null}">N/A</div>
+                            </span>
+                            <span th:if="${dhtTempResource == null and dhtHumResource != null}">
+                                <span th:text="${#numbers.formatDecimal(dhtHumResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span>% RH
+                            </span>
+                            <span th:if="${dhtTempResource == null and dhtHumResource == null}">N/A</span>
                         </div>
                     </div>
                 </div>
