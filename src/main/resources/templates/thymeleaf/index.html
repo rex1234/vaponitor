@@ -98,9 +98,57 @@
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
                           <span class="d-none d-sm-inline">
-                            <a href="#" class="btn" onclick="alert('Nice try')">
-                              Restart server
-                            </a>
+                            <div class="dropdown">
+                                <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2" width="24" height="24"
+                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                         stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+                                    </svg>
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="refreshMonitors()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon"
+                                             width="24" height="24" viewBox="0 0 24 24" stroke-width="2"
+                                             stroke="currentColor" fill="none" stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/>
+                                            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                                        </svg>
+                                        Refresh All Monitors
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="reloadConfig()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon"
+                                             width="24" height="24" viewBox="0 0 24 24" stroke-width="2"
+                                             stroke="currentColor" fill="none" stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                                            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/>
+                                            <path d="M12 17v-6"/>
+                                            <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"/>
+                                        </svg>
+                                        Reload Configuration
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="restartApplication()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon"
+                                             width="24" height="24" viewBox="0 0 24 24" stroke-width="2"
+                                             stroke="currentColor" fill="none" stroke-linecap="round"
+                                             stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <path d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747"/>
+                                            <path d="M20 4v5h-5"/>
+                                        </svg>
+                                        Restart Application
+                                    </a></li>
+                                </ul>
+                            </div>
                           </span>
                             <a href="#" class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal"
                                data-bs-target="#modal-report" aria-label="Create new report">
@@ -268,5 +316,122 @@
 <!-- Tabler Core -->
 <script src="./dist/js/tabler.min.js?1692870487" defer></script>
 <script src="./dist/js/demo.min.js?1692870487" defer></script>
+
+<script>
+    // Monitor Management Functions
+    function refreshMonitors() {
+        if (confirm('Force refresh all monitors now? This will trigger immediate evaluation of all resource and app monitors.')) {
+            showToast('Refreshing all monitors...', 'info');
+
+            fetch('/api/monitors/refresh', {method: 'POST'})
+                .then(response => {
+                    if (response.ok) {
+                        showToast('All monitors refreshed successfully!', 'success');
+                        location.reload(); // Refresh immediately
+                    } else {
+                        showToast('Failed to refresh monitors', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing monitors:', error);
+                    showToast('Error refreshing monitors', 'error');
+                });
+        }
+    }
+
+    function reloadConfig() {
+        if (confirm('Reload configuration from monitorconfig.yaml? This will update monitor settings and force refresh all monitors.')) {
+            showToast('Reloading configuration...', 'info');
+
+            fetch('/api/config/reload', {method: 'POST'})
+                .then(response => {
+                    if (response.ok) {
+                        showToast('Configuration reloaded successfully!', 'success');
+                        location.reload(); // Refresh immediately
+                    } else {
+                        showToast('Failed to reload configuration', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error reloading config:', error);
+                    showToast('Error reloading configuration', 'error');
+                });
+        }
+    }
+
+    function restartApplication() {
+        if (confirm('Restart the monitoring application? This will cause a brief service interruption while the application restarts.')) {
+            showToast('Restarting application...', 'warning');
+
+            fetch('/api/system/restart', {method: 'POST'})
+                .then(response => {
+                    if (response.ok) {
+                        showToast('Application is restarting...', 'info');
+                        setTimeout(() => {
+                            showToast('Checking if application is back online...', 'info');
+                            checkApplicationStatus();
+                        }, 5000);
+                    } else {
+                        showToast('Failed to restart application', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error restarting application:', error);
+                    showToast('Error restarting application', 'error');
+                });
+        }
+    }
+
+    function checkApplicationStatus() {
+        let attempts = 0;
+        const maxAttempts = 12; // Try for 1 minute
+
+        const checkStatus = () => {
+            attempts++;
+            fetch('/')
+                .then(response => {
+                    if (response.ok) {
+                        showToast('Application is back online!', 'success');
+                        location.reload(); // Refresh immediately when back online
+                    } else {
+                        throw new Error('Not ready yet');
+                    }
+                })
+                .catch(error => {
+                    if (attempts < maxAttempts) {
+                        setTimeout(checkStatus, 5000);
+                    } else {
+                        showToast('Application may have failed to restart. Please check manually.', 'error');
+                    }
+                });
+        };
+
+        checkStatus();
+    }
+
+    function showToast(message, type = 'info') {
+        // Create toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info'} alert-dismissible`;
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '9999';
+        toast.style.minWidth = '300px';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+</script>
 </body>
 </html>

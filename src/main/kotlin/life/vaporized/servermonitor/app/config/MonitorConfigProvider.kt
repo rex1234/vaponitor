@@ -32,8 +32,18 @@ class MonitorConfigProvider {
 
     private val logger = getLogger()
 
-    private val monitorConfig by lazy {
-        try {
+    private var _monitorConfig: MonitorConfig? = null
+
+    private val monitorConfig: MonitorConfig
+        get() {
+            if (_monitorConfig == null) {
+                _monitorConfig = loadConfig()
+            }
+            return _monitorConfig!!
+        }
+
+    private fun loadConfig(): MonitorConfig {
+        return try {
             val yamlData = File(CONFIG_FILENAME).readText()
             Yaml.Default.decodeFromString<MonitorConfig>(yamlData).also {
                 logger.info(
@@ -45,6 +55,17 @@ class MonitorConfigProvider {
         } catch (e: Exception) {
             throw IllegalStateException("Failed to load monitor config", e)
         }
+    }
+
+    /**
+     * Forces reload of the configuration from the YAML file
+     */
+    fun reload() {
+        logger.info("Reloading configuration from $CONFIG_FILENAME")
+        _monitorConfig = null // Clear the cache
+        // Access monitorConfig to trigger reload
+        monitorConfig
+        logger.info("Configuration reloaded successfully")
     }
 
     val resourceMonitorInterval

@@ -8,6 +8,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.routing
 import life.vaporized.servermonitor.app.util.getLogger
+import life.vaporized.servermonitor.plugins.routes.apiRoutes
 import life.vaporized.servermonitor.plugins.routes.appDetailsRoute
 import life.vaporized.servermonitor.plugins.routes.errorRoute
 import life.vaporized.servermonitor.plugins.routes.indexRoute
@@ -28,6 +29,7 @@ fun Application.configureRouting() {
     routing {
         indexRoute(get(), get())
         appDetailsRoute(get(), get())
+        apiRoutes(get(), get(), get())
         staticResources("/", "static")
     }
 }
