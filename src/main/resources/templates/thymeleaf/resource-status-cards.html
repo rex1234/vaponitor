@@ -1,0 +1,177 @@
+<!-- Current Values Section - Resource Monitor Status Cards -->
+<div th:fragment="resourceStatusCards(lastEval, enabledResources)" class="row row-cards mb-3">
+    <!-- CPU Usage Card -->
+    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RCpu')}"
+         th:with="cpuResource=${lastEval.resourceWithId('RCpu')}">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-primary text-white avatar">
+                            <!-- CPU icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <rect x="4" y="4" width="16" height="16" rx="1"/>
+                                <rect x="9" y="9" width="6" height="6"/>
+                                <path d="M3 10h2"/>
+                                <path d="M3 14h2"/>
+                                <path d="M19 10h2"/>
+                                <path d="M19 14h2"/>
+                                <path d="M10 3v2"/>
+                                <path d="M14 3v2"/>
+                                <path d="M10 19v2"/>
+                                <path d="M14 19v2"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="font-weight-medium">
+                            CPU Usage
+                        </div>
+                        <div class="text-secondary">
+                            <span th:if="${cpuResource != null}"
+                                  th:text="${#numbers.formatDecimal(cpuResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span><span
+                                th:if="${cpuResource != null}">%</span>
+                            <span th:if="${cpuResource == null}">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAM Usage Card -->
+    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RRam')}"
+         th:with="ramResource=${lastEval.resourceWithId('RRam')}">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-success text-white avatar">
+                            <!-- RAM stick icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <!-- RAM module body -->
+                                <rect x="4" y="8" width="16" height="8" rx="1"/>
+                                <!-- Notch in RAM stick -->
+                                <path d="M10 8v-2"/>
+                                <path d="M14 8v-2"/>
+                                <!-- RAM contacts/pins at bottom -->
+                                <path d="M5 16v2"/>
+                                <path d="M7 16v2"/>
+                                <path d="M9 16v2"/>
+                                <path d="M11 16v2"/>
+                                <path d="M13 16v2"/>
+                                <path d="M15 16v2"/>
+                                <path d="M17 16v2"/>
+                                <path d="M19 16v2"/>
+                                <!-- Circuit lines on RAM -->
+                                <path d="M6 10h12"/>
+                                <path d="M6 12h12"/>
+                                <path d="M6 14h12"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="font-weight-medium">
+                            RAM Usage
+                        </div>
+                        <div class="text-secondary">
+                            <span th:if="${ramResource != null}">
+                                <span th:text="${#numbers.formatDecimal(ramResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span>%
+                                <small class="text-muted">
+                                    (<span
+                                        th:text="${#numbers.formatDecimal(ramResource.current, 0, 'COMMA', 0, 'POINT')}">0</span> MB)
+                                </small>
+                            </span>
+                            <span th:if="${ramResource == null}">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CPU Temperature Card -->
+    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RTemp')}"
+         th:with="tempResource=${lastEval.resourceWithId('RTemp')}">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-warning text-white avatar">
+                            <!-- Temperature icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5"/>
+                                <path d="M10 9l4 0"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="font-weight-medium">
+                            CPU Temp
+                        </div>
+                        <div class="text-secondary">
+                            <span th:if="${tempResource != null}"
+                                  th:text="${#numbers.formatDecimal(tempResource.current, 0, 'COMMA', 1, 'POINT')}">0.0</span><span
+                                th:if="${tempResource != null}">°C</span>
+                            <span th:if="${tempResource == null}">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environmental Sensors Card -->
+    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RDht')}"
+         th:with="dhtTempResource=${lastEval.resourceWithId('RDhtTemp')}, dhtHumResource=${lastEval.resourceWithId('RDhtHumidity')}">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-info text-white avatar">
+                            <!-- Sensor icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
+                                <path d="M12 1v6"/>
+                                <path d="M12 17v6"/>
+                                <path d="M5.636 5.636l4.243 4.243"/>
+                                <path d="M14.121 14.121l4.243 4.243"/>
+                                <path d="M1 12h6"/>
+                                <path d="M17 12h6"/>
+                                <path d="M5.636 18.364l4.243 -4.243"/>
+                                <path d="M14.121 9.879l4.243 -4.243"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="font-weight-medium">
+                            Environment
+                        </div>
+                        <div class="text-secondary">
+                            <div th:if="${dhtTempResource != null}">
+                                <span th:text="${#numbers.formatDecimal(dhtTempResource.current, 0, 'COMMA', 1, 'POINT')}">0.0</span>°C
+                            </div>
+                            <div th:if="${dhtHumResource != null}">
+                                <span th:text="${#numbers.formatDecimal(dhtHumResource.usage, 0, 'COMMA', 1, 'POINT')}">0.0</span>%
+                                RH
+                            </div>
+                            <div th:if="${dhtTempResource == null && dhtHumResource == null}">N/A</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

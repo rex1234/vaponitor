@@ -1,5 +1,8 @@
-<div th:fragment="statusPage(appStatusList, volumes, graphs)" class="page-body">
+<div th:fragment="statusPage(appStatusList, volumes, graphs, lastEval, enabledResources)" class="page-body">
     <div class="container-xl">
+        <!-- Current Values Section -->
+        <div th:insert="~{resource-status-cards :: resourceStatusCards(${lastEval}, ${enabledResources})}"></div>
+
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-7" style="margin-top: 16px">
                 <div class="card">

@@ -145,6 +145,8 @@ fun Routing.indexRoute(
                     "timeline" to timeline,
                     "graphs" to graphs,
                     "volumes" to volumes,
+                    "enabledResources" to enabledResources,
+                    "lastEval" to (lastEval ?: MonitorEvaluation(emptyList(), emptyList(), System.currentTimeMillis())),
                 ),
             )
         )
