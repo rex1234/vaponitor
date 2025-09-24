@@ -34,7 +34,9 @@
                                 <th colspan="2"></th>
                             </tr>
                             </thead>
-                            <tr th:each="volume : ${volumes}">
+                            <tbody>
+                            <tr th:each="volume : ${volumes}"
+                                th:style="'background: linear-gradient(to right, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.1) ' + ${volume.usage} + '%, transparent ' + ${volume.usage} + '%, transparent 100%);'">
                                 <td th:text="${volume.description}"></td>
                                 <td class="text-secondary"
                                     th:text="${#numbers.formatDecimal(volume.free, 0, 'COMMA', 2, 'POINT') + ' GB'}"></td>
@@ -44,6 +46,7 @@
                                     th:text="${#numbers.formatDecimal(volume.usage, 0, 'COMMA', 2, 'POINT')+ '%'}"></td>
                                 <td class="text-end w-1">
                             </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
