@@ -41,4 +41,8 @@ class StatusRepository(
     }.onFailure {
         logger.error("Failed to restore data", it)
     }
+
+    suspend fun getHistoricalData(startTime: Long, endTime: Long): List<MonitorEvaluation> {
+        return database.getMeasurementsWithEntriesInTimeRange(startTime, endTime)
+    }
 }

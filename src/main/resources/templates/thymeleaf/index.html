@@ -268,5 +268,17 @@
 <!-- Tabler Core -->
 <script src="./dist/js/tabler.min.js?1692870487" defer></script>
 <script src="./dist/js/demo.min.js?1692870487" defer></script>
+
+<script>
+    function changeGraphDuration(duration) {
+        // Get current URL and update the duration parameter
+        const url = new URL(window.location);
+        url.searchParams.set('duration', duration);
+
+        // Reload the page with the new duration
+        window.location.href = url.toString();
+    }
+</script>
+
 </body>
 </html>

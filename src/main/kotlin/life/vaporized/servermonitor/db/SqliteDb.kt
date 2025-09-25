@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -136,6 +137,56 @@ class SqliteDb(
                 .toMap()
 
             logger.info("Retrieved ${measurements.count()} measurements with entries")
+
+            measurements.map { measurement ->
+                MonitorEvaluation(
+                    apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
+                    resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
+                    time = measurement[Tables.Measurement.timestamp],
+                )
+            }
+        }
+    }
+
+    suspend fun getMeasurementsWithEntriesInTimeRange(
+        startTime: Long,
+        endTime: Long
+    ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
+        logger.debug("Getting measurements with entries between $startTime and $endTime")
+
+        transaction {
+            val measurements = Tables.Measurement
+                .selectAll()
+                .where { (Tables.Measurement.timestamp greaterEq startTime) and (Tables.Measurement.timestamp lessEq endTime) }
+                .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                .toList()
+
+            val measurementIds = measurements.map { it[Tables.Measurement.id] }
+
+            if (measurementIds.isEmpty()) {
+                logger.info("No measurements found in time range")
+                return@transaction emptyList<MonitorEvaluation>()
+            }
+
+            val apps = Tables.AppEntry
+                .selectAll()
+                .where { Tables.AppEntry.measurementIdTable inList measurementIds }
+                .groupBy { it[Tables.AppEntry.measurementIdTable] }
+                .map { (measurementId, entries) ->
+                    measurementId to entries.map(::toAppStatus)
+                }
+                .toMap()
+
+            val resources = Tables.ResourceEntry
+                .selectAll()
+                .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
+                .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
+                .map { (measurementId, entries) ->
+                    measurementId to entries.map(::toResourceStatus)
+                }
+                .toMap()
+
+            logger.info("Retrieved ${measurements.count()} measurements with entries from time range")
 
             measurements.map { measurement ->
                 MonitorEvaluation(
