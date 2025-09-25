@@ -150,51 +150,89 @@ class SqliteDb(
 
     suspend fun getMeasurementsWithEntriesInTimeRange(
         startTime: Long,
-        endTime: Long
+        endTime: Long,
+        numberOfBuckets: Int = 200
     ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
-        logger.debug("Getting measurements with entries between $startTime and $endTime")
+        logger.debug("Getting measurements with entries between $startTime and $endTime grouped into $numberOfBuckets buckets")
 
         transaction {
-            val measurements = Tables.Measurement
+            val timeRange = endTime - startTime
+            val bucketSize = timeRange / numberOfBuckets
+
+            if (bucketSize <= 0) {
+                logger.warn("Invalid time range or bucket configuration")
+                return@transaction emptyList<MonitorEvaluation>()
+            }
+
+            // First, get all measurements in the time range
+            val measurementsInRange = Tables.Measurement
                 .selectAll()
                 .where { (Tables.Measurement.timestamp greaterEq startTime) and (Tables.Measurement.timestamp lessEq endTime) }
                 .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
                 .toList()
 
-            val measurementIds = measurements.map { it[Tables.Measurement.id] }
-
-            if (measurementIds.isEmpty()) {
-                logger.info("No measurements found in time range")
-                return@transaction emptyList<MonitorEvaluation>()
+            // Group measurements into buckets
+            val bucketedMeasurements = measurementsInRange.groupBy { measurement ->
+                val relativeTime = measurement[Tables.Measurement.timestamp] - startTime
+                val bucketIndex = (relativeTime / bucketSize).toInt().coerceIn(0, numberOfBuckets - 1)
+                bucketIndex
             }
 
-            val apps = Tables.AppEntry
-                .selectAll()
-                .where { Tables.AppEntry.measurementIdTable inList measurementIds }
-                .groupBy { it[Tables.AppEntry.measurementIdTable] }
-                .map { (measurementId, entries) ->
-                    measurementId to entries.map(::toAppStatus)
+            // Create averaged evaluations for each bucket
+            val results = (0 until numberOfBuckets).map { bucketIndex ->
+                val bucketTime = startTime + (bucketIndex * bucketSize) + (bucketSize / 2) // Middle of bucket
+
+                val measurementsInBucket = bucketedMeasurements[bucketIndex] ?: emptyList()
+
+                if (measurementsInBucket.isEmpty()) {
+                    MonitorEvaluation(
+                        apps = emptyList(),
+                        resources = emptyList(),
+                        time = bucketTime
+                    )
+                } else {
+                    val measurementIds = measurementsInBucket.map { it[Tables.Measurement.id] }
+
+                    // Get resource data for this bucket and average in Kotlin (simpler than complex SQL)
+                    val resourceEntries = Tables.ResourceEntry
+                        .selectAll()
+                        .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
+                        .toList()
+
+                    // Group by resource ID and calculate averages
+                    val avgResources = resourceEntries
+                        .groupBy { it[Tables.ResourceEntry.resourceId] }
+                        .map { (resourceId, entries) ->
+                            val avgUsage = entries.map { it[Tables.ResourceEntry.usage] }.average().toFloat()
+                            val avgMax = entries.map { it[Tables.ResourceEntry.max] }.average().toFloat()
+                            val description = entries.firstOrNull()?.get(Tables.ResourceEntry.description) ?: ""
+
+                            MonitorStatus.ResourceStatus(
+                                id = resourceId,
+                                name = resourceId,
+                                description = description,
+                                current = avgUsage,
+                                total = avgMax,
+                            )
+                        }
+
+                    // For apps, get the most recent status in the bucket
+                    val latestMeasurementId = measurementIds.maxOrNull() ?: measurementIds.first()
+                    val apps = Tables.AppEntry
+                        .selectAll()
+                        .where { Tables.AppEntry.measurementIdTable eq latestMeasurementId }
+                        .map(::toAppStatus)
+
+                    MonitorEvaluation(
+                        apps = apps,
+                        resources = avgResources,
+                        time = bucketTime
+                    )
                 }
-                .toMap()
-
-            val resources = Tables.ResourceEntry
-                .selectAll()
-                .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
-                .groupBy { it[Tables.ResourceEntry.measurementIdTable] }
-                .map { (measurementId, entries) ->
-                    measurementId to entries.map(::toResourceStatus)
-                }
-                .toMap()
-
-            logger.info("Retrieved ${measurements.count()} measurements with entries from time range")
-
-            measurements.map { measurement ->
-                MonitorEvaluation(
-                    apps = apps[measurement[Tables.Measurement.id]] ?: emptyList(),
-                    resources = resources[measurement[Tables.Measurement.id]] ?: emptyList(),
-                    time = measurement[Tables.Measurement.timestamp],
-                )
             }
+
+            logger.info("Retrieved and averaged ${measurementsInRange.size} measurements into $numberOfBuckets buckets")
+            results
         }
     }
 
