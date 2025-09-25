@@ -4,7 +4,9 @@
         <div th:insert="~{resource-status-cards :: resourceStatusCards(${lastEval}, ${enabledResources})}"></div>
 
         <div class="row row-cards" style="margin-top: 8px">
-            <div class="col-md-6 d-flex" style="margin-top: 16px">
+            <!-- Resources Graph - span full width when duration is applied -->
+            <div th:class="${selectedDuration != 'default' ? 'col-12 d-flex' : 'col-md-6 d-flex'}"
+                 style="margin-top: 16px">
                 <div class="card w-100">
                     <div th:insert="~{scripts/linechart :: lineChart(${graphs[0].id}, ${graphs[0].data})}"></div>
                     <div class="card-body">
@@ -18,7 +20,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 d-flex">
+            <!-- Disk usage - only show when no duration interval is applied -->
+            <div class="col-md-6 d-flex" th:if="${selectedDuration == 'default'}">
                 <div class="card w-100">
                     <div class="card-header">
                         <h3 class="card-title">Disk usage</h3>
@@ -54,8 +57,10 @@
         </div>
 
         <div class="row row-cards" style="margin-top: 8px">
-            <div class="col-md-6 d-flex" style="margin-top: 16px" th:if="${graphs.size() > 1}"
-                 th:with="graph=${graphs[1]}">
+            <!-- Second graph - span appropriate width based on duration -->
+            <div th:class="${selectedDuration != 'default' ? 'col-12 d-flex' : 'col-md-6 d-flex'}"
+                 style="margin-top: 16px"
+                 th:if="${graphs.size() > 1}" th:with="graph=${graphs[1]}">
                 <div class="card w-100">
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
@@ -69,8 +74,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 d-flex" style="margin-top: 16px" th:if="${graphs.size() > 2}"
-                 th:with="graph=${graphs[2]}">
+            <!-- Third graph - span appropriate width based on duration -->
+            <div th:class="${selectedDuration != 'default' ? 'col-12 d-flex' : 'col-md-6 d-flex'}"
+                 style="margin-top: 16px"
+                 th:if="${graphs.size() > 2}" th:with="graph=${graphs[2]}">
                 <div class="card w-100">
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
@@ -81,6 +88,43 @@
                             <h3 class="card-title" th:text="${graph.description}"></h3>
                         </div>
                         <div th:id="'chart-' + ${graph.id}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show disk usage table separately when duration interval is applied -->
+        <div class="row row-cards" style="margin-top: 8px" th:if="${selectedDuration != 'default'}">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Disk usage</h3>
+                    </div>
+                    <div class="card-table table-responsive">
+                        <table class="table table-vcenter">
+                            <thead>
+                            <tr>
+                                <th>Volume</th>
+                                <th>Free</th>
+                                <th>Total</th>
+                                <th>%</th>
+                                <th colspan="2"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="volume : ${volumes}"
+                                th:style="'background: linear-gradient(to right, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.1) ' + ${volume.usage} + '%, transparent ' + ${volume.usage} + '%, transparent 100%);'">
+                                <td th:text="${volume.description}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.free, 0, 'COMMA', 2, 'POINT') + ' GB'}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.total, 0, 'COMMA', 2, 'POINT') + ' GB'}"></td>
+                                <td class="text-secondary"
+                                    th:text="${#numbers.formatDecimal(volume.usage, 0, 'COMMA', 2, 'POINT')+ '%'}"></td>
+                                <td class="text-end w-1">
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
