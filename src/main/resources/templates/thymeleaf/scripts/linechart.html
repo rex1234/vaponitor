@@ -50,7 +50,28 @@
                 labels: {
                     padding: 0,
                     formatter: function (value) {
-                        return new Date(value).toLocaleTimeString();
+                        const date = new Date(value);
+                        const now = new Date();
+                        const timeDiff = now.getTime() - date.getTime();
+                        const daysDiff = timeDiff / (1000 * 3600 * 24);
+
+                        // For time ranges > 2 days, show date and time
+                        if (daysDiff > 2) {
+                            // For longer periods, show date and abbreviated time
+                            if (daysDiff > 30) {
+                                // For month/year views: show date only or date with month
+                                return daysDiff > 365
+                                    ? date.toLocaleDateString('en-US', {month: 'short', year: 'numeric'})
+                                    : date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+                            } else {
+                                // For week view: show date and time
+                                return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) +
+                                    ' ' + date.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+                            }
+                        } else {
+                            // For 1-day view: show time only
+                            return date.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+                        }
                     }
                 },
                 tooltip: {
