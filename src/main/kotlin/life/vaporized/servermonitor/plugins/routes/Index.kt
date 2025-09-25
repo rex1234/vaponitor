@@ -7,7 +7,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.thymeleaf.ThymeleafContent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
 import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
@@ -43,7 +42,7 @@ fun Routing.indexRoute(
             // Use SQL-side aggregation - returns exactly TIMELINE_POINTS pre-averaged entries
             statusRepository.getHistoricalData(startTime, endTime)
         } else {
-            // For default view, use existing averaging logic on cached data
+            // For default view, use cached data
             val timeline = getTimeLine(monitorConfig.historyDuration)
             mapTimelineToEvaluations(timeline, statusRepository.history.elements)
         }
@@ -173,33 +172,15 @@ private fun parseDuration(durationString: String): Duration {
     return when (durationString.lowercase()) {
         "1d" -> 1.days
         "7d" -> 7.days
+        "2w" -> 14.days
         "1m" -> 30.days
+        "3m" -> 90.days
         "yr" -> 365.days
-        else -> {
-            // Fallback to original parsing for backwards compatibility
-            val durationPattern = Regex("(\\d+)([hHdD])")
-            val matches = durationPattern.findAll(durationString)
-
-            var totalDuration = Duration.ZERO
-
-            for (match in matches) {
-                val value = match.groupValues[1].toLong()
-                val unit = match.groupValues[2].lowercase()
-
-                val duration = when (unit) {
-                    "h" -> value.hours
-                    "d" -> value.days
-                    else -> throw IllegalArgumentException("Invalid time unit: $unit")
-                }
-
-                totalDuration += duration
-            }
-
-            totalDuration
-        }
+        else -> 1.days // Default to 1 day if unrecognized
     }
 }
 
+// TODO: Can be removed?
 fun mapTimelineToEvaluations(
     timeline: List<Long>,
     entries: List<MonitorEvaluation>,

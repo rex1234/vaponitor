@@ -119,6 +119,10 @@ class SqliteDb(
         }
     }
 
+    /**
+     * Gets the latest [numberOfMeasurements] measurements with their associated app and resource entries.
+     * The results are ordered from oldest to newest.
+     */
     suspend fun getMeasurementsWithEntries(
         numberOfMeasurements: Int,
     ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
@@ -163,12 +167,21 @@ class SqliteDb(
         }
     }
 
+    /**
+     * Gets measurements with their associated resource entries within the specified time range.
+     * The results are grouped into [numberOfBuckets] buckets, averaging resource usage within each bucket.
+     * The results are ordered from oldest to newest.
+     *
+     * Sampling is applied based on the duration of the time range to optimize performance:
+     * - For short periods (up to 1 day), all data is used.
+     * - For longer periods, every Nth entry is sampled to reduce load.
+     */
     suspend fun getMeasurementsWithEntriesInTimeRange(
         startTime: Long,
         endTime: Long,
         numberOfBuckets: Int = 200
     ): List<MonitorEvaluation> = withContext(Dispatchers.IO) {
-        logger.debug("Getting measurements with entries between $startTime and $endTime grouped into $numberOfBuckets buckets")
+        logger.info("Getting measurements with entries between $startTime and $endTime grouped into $numberOfBuckets buckets")
 
         transaction {
             val timeRange = endTime - startTime
@@ -189,7 +202,7 @@ class SqliteDb(
                 else -> 200                 // >1 year: every 200th entry
             }
 
-            println("Time range: $durationDays days, using sample rate: $sampleRate")
+            logger.debug("Time range: $durationDays days, using sample rate: $sampleRate")
 
             // PERFORMANCE FIX: Get sampled resource data in ONE query
             val allResourceData = if (sampleRate == 1) {
@@ -216,7 +229,7 @@ class SqliteDb(
                     .filterIndexed { index, _ -> index % sampleRate == 0 } // Take every Nth entry
                     .map { it[Tables.Measurement.id] }
 
-                println("Sampled ${sampledMeasurementIds.size} measurements out of total range")
+                logger.debug("Sampled ${sampledMeasurementIds.size} measurements out of total range")
 
                 // Get resource data only for sampled measurements
                 Tables.ResourceEntry
@@ -233,7 +246,7 @@ class SqliteDb(
                     .toList()
             }
 
-            println("Got ${allResourceData.size} resource entries in one query (sample rate: $sampleRate)")
+            logger.debug("Got ${allResourceData.size} resource entries in one query (sample rate: $sampleRate)")
 
             // Group all resource data by bucket and resourceId
             val resourceDataByBucket = allResourceData.groupBy { row ->
@@ -278,7 +291,7 @@ class SqliteDb(
                         resources = avgResources,
                         time = bucketTime
                     ).also {
-                        println("Bucket $bucketIndex at $bucketTime with ${resourceEntriesInBucket.size} resource entries and ${avgResources.size} unique resources")
+                        logger.debug("Bucket $bucketIndex at $bucketTime with ${resourceEntriesInBucket.size} resource entries and ${avgResources.size} unique resources")
                     }
                 }
             }
@@ -304,11 +317,14 @@ class SqliteDb(
         isHttpsReachable = result[Tables.AppEntry.isHttpsReachable],
     )
 
+    /**
+     * Deletes measurements older than the specified [duration] along with their associated entries.
+     * This helps to keep the database size manageable.
+     */
     suspend fun deleteOldMeasurements(duration: Duration) = withContext(Dispatchers.IO) {
         transaction {
             val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
 
-            // Delete from AppEntry and ResourceEntry where measurementId is in the list of old measurementIds
             val oldMeasurementIds = Tables.Measurement
                 .selectAll()
                 .where { Tables.Measurement.timestamp less threshold }
@@ -329,6 +345,11 @@ class SqliteDb(
         }
     }
 
+    /**
+     * Retrieves the status change history for a specific app identified by [appId].
+     * Returns a list of pairs containing the timestamp and the corresponding [MonitorStatus.AppStatus].
+     * The list is ordered from newest to oldest status change.
+     */
     suspend fun getAppStatusHistory(
         appId: String,
         numberOfEntries: Int = 100,
