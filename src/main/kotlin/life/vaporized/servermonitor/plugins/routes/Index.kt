@@ -35,17 +35,21 @@ fun Routing.indexRoute(
         val durationParam = call.request.queryParameters["duration"]
         val timelineDuration = durationParam?.let { parseDuration(it) } ?: monitorConfig.historyDuration
 
-        // If duration parameter is provided, fetch historical data from database
+        // If duration parameter is provided, fetch pre-aggregated data from database
         // Otherwise, use cached history for better performance
-        val history = if (durationParam != null) {
+        val timelineEntries = if (durationParam != null) {
             val endTime = System.currentTimeMillis()
             val startTime = endTime - timelineDuration.inWholeMilliseconds
+            // Use SQL-side aggregation - returns exactly TIMELINE_POINTS pre-averaged entries
             statusRepository.getHistoricalData(startTime, endTime)
         } else {
-            statusRepository.history.elements
+            // For default view, use existing averaging logic on cached data
+            val (timeline, entries) = getTimeLineWithAveraging(timelineDuration, statusRepository.history.elements)
+            entries
         }
 
-        val (timeline, timelineEntries) = getTimeLineWithAveraging(timelineDuration, history)
+        // Extract timeline from the entries (SQL method returns data with proper timestamps)
+        val timeline = timelineEntries.map { it?.time ?: System.currentTimeMillis() }
 
         val ram = timelineEntries.map {
             it?.resourceWithId(RamUsageMonitor.id)
