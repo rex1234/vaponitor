@@ -6,41 +6,14 @@
         <div class="row row-cards" style="margin-top: 8px">
             <div class="col-md-6 d-flex" style="margin-top: 16px">
                 <div class="card w-100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="subheader">RAM & CPU</div>
-                                <h3 class="card-title">Resource usage</h3>
-                            </div>
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="duration-resources"
-                                       id="duration-resources-1d"
-                                       th:checked="${selectedDuration == '1d' || selectedDuration == 'default'}"
-                                       onchange="changeGraphDuration('1d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-resources-1d">1D</label>
-
-                                <input type="radio" class="btn-check" name="duration-resources"
-                                       id="duration-resources-7d"
-                                       th:checked="${selectedDuration == '7d'}"
-                                       onchange="changeGraphDuration('7d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-resources-7d">7D</label>
-
-                                <input type="radio" class="btn-check" name="duration-resources"
-                                       id="duration-resources-1m"
-                                       th:checked="${selectedDuration == '1m'}"
-                                       onchange="changeGraphDuration('1m')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-resources-1m">1M</label>
-
-                                <input type="radio" class="btn-check" name="duration-resources"
-                                       id="duration-resources-yr"
-                                       th:checked="${selectedDuration == 'yr'}"
-                                       onchange="changeGraphDuration('yr')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-resources-yr">1Y</label>
-                            </div>
-                        </div>
-                    </div>
                     <div th:insert="~{scripts/linechart :: lineChart(${graphs[0].id}, ${graphs[0].data})}"></div>
                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader">RAM & CPU</div>
+                        </div>
+                        <div class="d-flex">
+                            <h3 class="card-title">Resource usage</h3>
+                        </div>
                         <div th:id="'chart-' + ${graphs[0].id}"></div>
                     </div>
                 </div>
@@ -84,41 +57,14 @@
             <div class="col-md-6 d-flex" style="margin-top: 16px" th:if="${graphs.size() > 1}"
                  th:with="graph=${graphs[1]}">
                 <div class="card w-100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="subheader" th:text="${graph.title}"></div>
-                                <h3 class="card-title" th:text="${graph.description}"></h3>
-                            </div>
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="duration-raspberry"
-                                       id="duration-raspberry-1d"
-                                       th:checked="${selectedDuration == '1d' || selectedDuration == 'default'}"
-                                       onchange="changeGraphDuration('1d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-raspberry-1d">1D</label>
-
-                                <input type="radio" class="btn-check" name="duration-raspberry"
-                                       id="duration-raspberry-7d"
-                                       th:checked="${selectedDuration == '7d'}"
-                                       onchange="changeGraphDuration('7d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-raspberry-7d">7D</label>
-
-                                <input type="radio" class="btn-check" name="duration-raspberry"
-                                       id="duration-raspberry-1m"
-                                       th:checked="${selectedDuration == '1m'}"
-                                       onchange="changeGraphDuration('1m')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-raspberry-1m">1M</label>
-
-                                <input type="radio" class="btn-check" name="duration-raspberry"
-                                       id="duration-raspberry-yr"
-                                       th:checked="${selectedDuration == 'yr'}"
-                                       onchange="changeGraphDuration('yr')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-raspberry-yr">1Y</label>
-                            </div>
-                        </div>
-                    </div>
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader" th:text="${graph.title}"></div>
+                        </div>
+                        <div class="d-flex">
+                            <h3 class="card-title" th:text="${graph.description}"></h3>
+                        </div>
                         <div th:id="'chart-' + ${graph.id}"></div>
                     </div>
                 </div>
@@ -126,37 +72,14 @@
             <div class="col-md-6 d-flex" style="margin-top: 16px" th:if="${graphs.size() > 2}"
                  th:with="graph=${graphs[2]}">
                 <div class="card w-100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="subheader" th:text="${graph.title}"></div>
-                                <h3 class="card-title" th:text="${graph.description}"></h3>
-                            </div>
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="duration-sensors" id="duration-sensors-1d"
-                                       th:checked="${selectedDuration == '1d' || selectedDuration == 'default'}"
-                                       onchange="changeGraphDuration('1d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-sensors-1d">1D</label>
-
-                                <input type="radio" class="btn-check" name="duration-sensors" id="duration-sensors-7d"
-                                       th:checked="${selectedDuration == '7d'}"
-                                       onchange="changeGraphDuration('7d')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-sensors-7d">7D</label>
-
-                                <input type="radio" class="btn-check" name="duration-sensors" id="duration-sensors-1m"
-                                       th:checked="${selectedDuration == '1m'}"
-                                       onchange="changeGraphDuration('1m')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-sensors-1m">1M</label>
-
-                                <input type="radio" class="btn-check" name="duration-sensors" id="duration-sensors-yr"
-                                       th:checked="${selectedDuration == 'yr'}"
-                                       onchange="changeGraphDuration('yr')">
-                                <label class="btn btn-outline-primary btn-sm" for="duration-sensors-yr">1Y</label>
-                            </div>
-                        </div>
-                    </div>
                     <div th:insert="~{scripts/linechart :: lineChart(${graph.id}, ${graph.data})}"></div>
                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader" th:text="${graph.title}"></div>
+                        </div>
+                        <div class="d-flex">
+                            <h3 class="card-title" th:text="${graph.description}"></h3>
+                        </div>
                         <div th:id="'chart-' + ${graph.id}"></div>
                     </div>
                 </div>

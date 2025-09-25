@@ -16,7 +16,6 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.avg
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -36,11 +35,26 @@ class SqliteDb(
         Database.connect("jdbc:sqlite:measurements.db", driver = "org.sqlite.JDBC")
 
         transaction {
+            // Create tables if they don't exist
             SchemaUtils.create(
                 Tables.Measurement,
                 Tables.ResourceEntry,
                 Tables.AppEntry,
             )
+
+            // Create indices (will be created if they don't exist)
+            logger.info("Creating database indices for performance optimization...")
+
+            SchemaUtils.createIndex(Tables.Measurement.timestampIndex)
+
+            SchemaUtils.createIndex(Tables.ResourceEntry.measurementIdIndex)
+            SchemaUtils.createIndex(Tables.ResourceEntry.resourceIdIndex)
+            SchemaUtils.createIndex(Tables.ResourceEntry.compositeIndex)
+
+            SchemaUtils.createIndex(Tables.AppEntry.measurementIdIndex)
+            SchemaUtils.createIndex(Tables.AppEntry.appIdIndex)
+
+            logger.info("Database initialization completed with performance indices")
         }
     }
 
@@ -165,65 +179,111 @@ class SqliteDb(
                 return@transaction emptyList<MonitorEvaluation>()
             }
 
-            // First, get all measurements in the time range
-            val measurementsInRange = Tables.Measurement
-                .selectAll()
-                .where { (Tables.Measurement.timestamp greaterEq startTime) and (Tables.Measurement.timestamp lessEq endTime) }
-                .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
-                .toList()
+            // Calculate sampling rate based on time range duration
+            val durationDays = timeRange / (24 * 60 * 60 * 1000) // Convert to days
+            val sampleRate = when {
+                durationDays <= 1 -> 1      // 1 day: use all data (4320 entries max)
+                durationDays <= 7 -> 3      // 1 week: every 3rd entry (~10k entries)
+                durationDays <= 30 -> 15    // 1 month: every 15th entry (~8.6k entries)
+                durationDays <= 365 -> 100  // 1 year: every 100th entry (~16k entries)
+                else -> 200                 // >1 year: every 200th entry
+            }
 
-            // Group measurements into buckets
-            val bucketedMeasurements = measurementsInRange.groupBy { measurement ->
-                val relativeTime = measurement[Tables.Measurement.timestamp] - startTime
+            println("Time range: $durationDays days, using sample rate: $sampleRate")
+
+            // PERFORMANCE FIX: Get sampled resource data in ONE query
+            val allResourceData = if (sampleRate == 1) {
+                // For short periods, get all data
+                Tables.ResourceEntry
+                    .innerJoin(Tables.Measurement)
+                    .select(
+                        Tables.ResourceEntry.resourceId,
+                        Tables.ResourceEntry.usage,
+                        Tables.ResourceEntry.max,
+                        Tables.ResourceEntry.description,
+                        Tables.Measurement.timestamp
+                    )
+                    .where { (Tables.Measurement.timestamp greaterEq startTime) and (Tables.Measurement.timestamp lessEq endTime) }
+                    .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                    .toList()
+            } else {
+                // For longer periods, use sampling by getting every Nth measurement ID
+                val sampledMeasurementIds = Tables.Measurement
+                    .select(Tables.Measurement.id)
+                    .where { (Tables.Measurement.timestamp greaterEq startTime) and (Tables.Measurement.timestamp lessEq endTime) }
+                    .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                    .toList()
+                    .filterIndexed { index, _ -> index % sampleRate == 0 } // Take every Nth entry
+                    .map { it[Tables.Measurement.id] }
+
+                println("Sampled ${sampledMeasurementIds.size} measurements out of total range")
+
+                // Get resource data only for sampled measurements
+                Tables.ResourceEntry
+                    .innerJoin(Tables.Measurement)
+                    .select(
+                        Tables.ResourceEntry.resourceId,
+                        Tables.ResourceEntry.usage,
+                        Tables.ResourceEntry.max,
+                        Tables.ResourceEntry.description,
+                        Tables.Measurement.timestamp
+                    )
+                    .where { Tables.ResourceEntry.measurementIdTable inList sampledMeasurementIds }
+                    .orderBy(Tables.Measurement.timestamp, SortOrder.ASC)
+                    .toList()
+            }
+
+            println("Got ${allResourceData.size} resource entries in one query (sample rate: $sampleRate)")
+
+            // Group all resource data by bucket and resourceId
+            val resourceDataByBucket = allResourceData.groupBy { row ->
+                val timestamp = row[Tables.Measurement.timestamp]
+                val relativeTime = timestamp - startTime
                 val bucketIndex = (relativeTime / bucketSize).toInt().coerceIn(0, numberOfBuckets - 1)
                 bucketIndex
             }
 
-            // Create averaged evaluations for each bucket - only process resources, skip apps
+            // Create results for each bucket
             val results = (0 until numberOfBuckets).map { bucketIndex ->
-                val bucketTime = startTime + (bucketIndex * bucketSize) + (bucketSize / 2) // Middle of bucket
+                val bucketTime = startTime + (bucketIndex * bucketSize) + (bucketSize / 2)
 
-                val measurementsInBucket = bucketedMeasurements[bucketIndex] ?: emptyList()
+                val resourceEntriesInBucket = resourceDataByBucket[bucketIndex] ?: emptyList()
 
-                if (measurementsInBucket.isEmpty()) {
+                if (resourceEntriesInBucket.isEmpty()) {
                     MonitorEvaluation(
-                        apps = emptyList(), // Always empty for performance
+                        apps = emptyList(),
                         resources = emptyList(),
                         time = bucketTime
                     )
                 } else {
-                    val measurementIds = measurementsInBucket.map { it[Tables.Measurement.id] }
+                    // Group by resourceId and calculate averages in Kotlin (fast since data is already fetched)
+                    val avgResources = resourceEntriesInBucket
+                        .groupBy { it[Tables.ResourceEntry.resourceId] }
+                        .map { (resourceId, entries) ->
+                            val avgUsage = entries.map { it[Tables.ResourceEntry.usage] }.average().toFloat()
+                            val avgMax = entries.map { it[Tables.ResourceEntry.max] }.average().toFloat()
+                            val description = entries.firstOrNull()?.get(Tables.ResourceEntry.description) ?: ""
 
-                    // Only fetch resource data - skip apps for performance
-                    // Use SQL GROUP BY and AVG to do aggregation in database instead of Kotlin
-                    val avgResources = Tables.ResourceEntry
-                        .select(
-                            Tables.ResourceEntry.resourceId,
-                            Tables.ResourceEntry.usage.avg(),
-                            Tables.ResourceEntry.max.avg(),
-                            Tables.ResourceEntry.description
-                        )
-                        .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
-                        .groupBy(Tables.ResourceEntry.resourceId)
-                        .map { row ->
                             MonitorStatus.ResourceStatus(
-                                id = row[Tables.ResourceEntry.resourceId],
-                                name = row[Tables.ResourceEntry.resourceId],
-                                description = row[Tables.ResourceEntry.description] ?: "",
-                                current = row[Tables.ResourceEntry.usage.avg()]?.toFloat() ?: 0f,
-                                total = row[Tables.ResourceEntry.max.avg()]?.toFloat() ?: 1f,
+                                id = resourceId,
+                                name = resourceId,
+                                description = description,
+                                current = avgUsage,
+                                total = avgMax,
                             )
                         }
 
                     MonitorEvaluation(
-                        apps = emptyList(), // Skip apps for performance - only resources needed for graphs
+                        apps = emptyList(),
                         resources = avgResources,
                         time = bucketTime
-                    )
+                    ).also {
+                        println("Bucket $bucketIndex at $bucketTime with ${resourceEntriesInBucket.size} resource entries and ${avgResources.size} unique resources")
+                    }
                 }
             }
 
-            logger.info("Retrieved and averaged ${measurementsInRange.size} measurements into $numberOfBuckets buckets (resources only)")
+            logger.info("Retrieved and averaged ${allResourceData.size} resource entries into $numberOfBuckets buckets (sample rate: $sampleRate)")
             results
         }
     }
