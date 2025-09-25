@@ -294,11 +294,18 @@
 
 <script>
     function changeGraphDuration(duration) {
-        // Get current URL and update the duration parameter
+        // Get current URL
         const url = new URL(window.location);
-        url.searchParams.set('duration', duration);
 
-        // Reload the page with the new duration
+        if (duration === '1d') {
+            // For 1D, remove the duration parameter entirely (treat as default)
+            url.searchParams.delete('duration');
+        } else {
+            // For other durations, set the parameter
+            url.searchParams.set('duration', duration);
+        }
+
+        // Reload the page with the updated URL
         window.location.href = url.toString();
     }
 </script>
