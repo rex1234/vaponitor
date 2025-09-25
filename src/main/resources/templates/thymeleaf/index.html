@@ -97,7 +97,30 @@
                     <!-- Page title actions -->
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
-                          <span class="d-none d-sm-inline">
+                            <!-- Duration selection buttons -->
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="duration-global" id="duration-global-1d"
+                                       th:checked="${selectedDuration == '1d' || selectedDuration == 'default'}"
+                                       onchange="changeGraphDuration('1d')">
+                                <label class="btn btn-outline-primary" for="duration-global-1d">1D</label>
+
+                                <input type="radio" class="btn-check" name="duration-global" id="duration-global-7d"
+                                       th:checked="${selectedDuration == '7d'}"
+                                       onchange="changeGraphDuration('7d')">
+                                <label class="btn btn-outline-primary" for="duration-global-7d">7D</label>
+
+                                <input type="radio" class="btn-check" name="duration-global" id="duration-global-1m"
+                                       th:checked="${selectedDuration == '1m'}"
+                                       onchange="changeGraphDuration('1m')">
+                                <label class="btn btn-outline-primary" for="duration-global-1m">1M</label>
+
+                                <input type="radio" class="btn-check" name="duration-global" id="duration-global-yr"
+                                       th:checked="${selectedDuration == 'yr'}"
+                                       onchange="changeGraphDuration('yr')">
+                                <label class="btn btn-outline-primary" for="duration-global-yr">1Y</label>
+                            </div>
+
+                            <span class="d-none d-sm-inline">
                             <a href="#" class="btn" onclick="alert('Nice try')">
                               Restart server
                             </a>
