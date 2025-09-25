@@ -6,6 +6,8 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.thymeleaf.ThymeleafContent
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import life.vaporized.servermonitor.app.StatusRepository
 import life.vaporized.servermonitor.app.config.EnvConfig
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
@@ -28,13 +30,22 @@ fun Routing.indexRoute(
 ) {
     get("/") {
         val enabledResources = monitorConfig.enabledResourceMonitors.map { it.id }
-
         val lastEval = statusRepository.last()
 
-        val history = statusRepository.history
-        val timeline = getTimeLine(monitorConfig.historyDuration)
+        val durationParam = call.request.queryParameters["duration"]
+        val timelineDuration = durationParam?.let { parseDuration(it) } ?: monitorConfig.historyDuration
 
-        val timelineEntries = mapTimelineToEvaluations(timeline, history.elements)
+        // If duration parameter is provided, fetch historical data from database
+        // Otherwise, use cached history for better performance
+        val history = if (durationParam != null) {
+            val endTime = System.currentTimeMillis()
+            val startTime = endTime - timelineDuration.inWholeMilliseconds
+            statusRepository.getHistoricalData(startTime, endTime)
+        } else {
+            statusRepository.history.elements
+        }
+
+        val (timeline, timelineEntries) = getTimeLineWithAveraging(timelineDuration, history)
 
         val ram = timelineEntries.map {
             it?.resourceWithId(RamUsageMonitor.id)
@@ -55,14 +66,14 @@ fun Routing.indexRoute(
             ?.filter { it.id.startsWith(DiskUsageMonitor.id) }
             ?: emptyList()
 
-        val resourcesGraph = GraphData(
+        val resourcesGraph = GraphData<Long>(
             graphName = "Resources",
             xAxis = timeline,
             yAxis = listOf(
                 GraphData.YAxisData(
                     name = "RAM",
                     data = ram.map { it?.usage },
-                    formattedValues = ram.map { "${it?.current} MB" },
+                    formattedValues = ram.map { "${it?.current ?: 0} MB" },
                 ),
                 GraphData.YAxisData(
                     name = "CPU",
@@ -73,7 +84,7 @@ fun Routing.indexRoute(
         )
 
         val tempGraph = if (RaspberryTempMonitor.id in enabledResources) {
-            GraphData(
+            GraphData<Long>(
                 graphName = "Raspberry",
                 xAxis = timeline,
                 yAxis = listOf(
@@ -89,7 +100,7 @@ fun Routing.indexRoute(
         }
 
         val sensorGraph = if (Dht22Monitor.id in enabledResources) {
-            GraphData(
+            GraphData<Long>(
                 graphName = "Sensors",
                 xAxis = timeline,
                 yAxis = listOf(
@@ -114,20 +125,20 @@ fun Routing.indexRoute(
         }
 
         val graphs = listOfNotNull(
-            GraphDefinition(
+            GraphDefinition<Long>(
                 title = "Resources",
                 description = "RAM and CPU usage",
                 data = resourcesGraph,
             ),
             tempGraph?.let {
-                GraphDefinition(
+                GraphDefinition<Long>(
                     title = "Raspberry",
                     description = "CPU Temperature",
                     data = it,
                 )
             },
             sensorGraph?.let {
-                GraphDefinition(
+                GraphDefinition<Long>(
                     title = "Sensors",
                     description = "Temperature and humidity",
                     data = it,
@@ -147,9 +158,94 @@ fun Routing.indexRoute(
                     "volumes" to volumes,
                     "enabledResources" to enabledResources,
                     "lastEval" to (lastEval ?: MonitorEvaluation(emptyList(), emptyList(), System.currentTimeMillis())),
+                    "selectedDuration" to (durationParam ?: "default"),
                 ),
             )
         )
+    }
+}
+
+private fun getTimeLineWithAveraging(
+    timelineDuration: Duration,
+    history: List<MonitorEvaluation>
+): Pair<List<Long>, List<MonitorEvaluation?>> {
+    val stepSize = timelineDuration.inWholeMilliseconds / TIMELINE_POINTS
+    val timeline = (0 until TIMELINE_POINTS).map { System.currentTimeMillis() - it * stepSize }.reversed()
+
+    if (history.isEmpty()) {
+        return Pair(timeline, List(TIMELINE_POINTS) { null })
+    }
+
+    // For longer durations, we need to average data points
+    val averagedEntries = timeline.map { targetTime ->
+        val windowStart = targetTime - stepSize / 2
+        val windowEnd = targetTime + stepSize / 2
+
+        val dataPointsInWindow = history.filter { it.time in windowStart..windowEnd }
+
+        if (dataPointsInWindow.isEmpty()) {
+            null
+        } else {
+            // Average the data points
+            val baseEval = dataPointsInWindow.first()
+            val avgResources = baseEval.resources.mapNotNull { resource ->
+                val usageValues = dataPointsInWindow.mapNotNull { eval ->
+                    eval.resourceWithId(resource.id)?.usage
+                }
+
+                val currentValues = dataPointsInWindow.mapNotNull { eval ->
+                    eval.resourceWithId(resource.id)?.current
+                }
+
+                if (usageValues.isNotEmpty() && currentValues.isNotEmpty()) {
+                    resource.copy(
+                        current = currentValues.average().toFloat(),
+                        total = resource.total // Keep the total unchanged as it represents capacity
+                    )
+                } else {
+                    null
+                }
+            }
+
+            MonitorEvaluation(
+                apps = baseEval.apps,
+                resources = avgResources,
+                time = targetTime
+            )
+        }
+    }
+
+    return Pair(timeline, averagedEntries)
+}
+
+private fun parseDuration(durationString: String): Duration {
+    return when (durationString.lowercase()) {
+        "1d" -> 1.days
+        "7d" -> 7.days
+        "1m" -> 30.days
+        "yr" -> 365.days
+        else -> {
+            // Fallback to original parsing for backwards compatibility
+            val durationPattern = Regex("(\\d+)([hHdD])")
+            val matches = durationPattern.findAll(durationString)
+
+            var totalDuration = Duration.ZERO
+
+            for (match in matches) {
+                val value = match.groupValues[1].toLong()
+                val unit = match.groupValues[2].lowercase()
+
+                val duration = when (unit) {
+                    "h" -> value.hours
+                    "d" -> value.days
+                    else -> throw IllegalArgumentException("Invalid time unit: $unit")
+                }
+
+                totalDuration += duration
+            }
+
+            totalDuration
+        }
     }
 }
 
