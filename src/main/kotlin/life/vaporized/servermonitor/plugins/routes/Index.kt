@@ -44,8 +44,8 @@ fun Routing.indexRoute(
             statusRepository.getHistoricalData(startTime, endTime)
         } else {
             // For default view, use existing averaging logic on cached data
-            val (timeline, entries) = getTimeLineWithAveraging(timelineDuration, statusRepository.history.elements)
-            entries
+            val timeline = getTimeLine(monitorConfig.historyDuration)
+            mapTimelineToEvaluations(timeline, statusRepository.history.elements)
         }
 
         // Extract timeline from the entries (SQL method returns data with proper timestamps)
@@ -167,59 +167,6 @@ fun Routing.indexRoute(
             )
         )
     }
-}
-
-private fun getTimeLineWithAveraging(
-    timelineDuration: Duration,
-    history: List<MonitorEvaluation>
-): Pair<List<Long>, List<MonitorEvaluation?>> {
-    val stepSize = timelineDuration.inWholeMilliseconds / TIMELINE_POINTS
-    val timeline = (0 until TIMELINE_POINTS).map { System.currentTimeMillis() - it * stepSize }.reversed()
-
-    if (history.isEmpty()) {
-        return Pair(timeline, List(TIMELINE_POINTS) { null })
-    }
-
-    // For longer durations, we need to average data points
-    val averagedEntries = timeline.map { targetTime ->
-        val windowStart = targetTime - stepSize / 2
-        val windowEnd = targetTime + stepSize / 2
-
-        val dataPointsInWindow = history.filter { it.time in windowStart..windowEnd }
-
-        if (dataPointsInWindow.isEmpty()) {
-            null
-        } else {
-            // Average the data points
-            val baseEval = dataPointsInWindow.first()
-            val avgResources = baseEval.resources.mapNotNull { resource ->
-                val usageValues = dataPointsInWindow.mapNotNull { eval ->
-                    eval.resourceWithId(resource.id)?.usage
-                }
-
-                val currentValues = dataPointsInWindow.mapNotNull { eval ->
-                    eval.resourceWithId(resource.id)?.current
-                }
-
-                if (usageValues.isNotEmpty() && currentValues.isNotEmpty()) {
-                    resource.copy(
-                        current = currentValues.average().toFloat(),
-                        total = resource.total // Keep the total unchanged as it represents capacity
-                    )
-                } else {
-                    null
-                }
-            }
-
-            MonitorEvaluation(
-                apps = baseEval.apps,
-                resources = avgResources,
-                time = targetTime
-            )
-        }
-    }
-
-    return Pair(timeline, averagedEntries)
 }
 
 private fun parseDuration(durationString: String): Duration {

@@ -16,6 +16,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.avg
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -178,7 +179,7 @@ class SqliteDb(
                 bucketIndex
             }
 
-            // Create averaged evaluations for each bucket
+            // Create averaged evaluations for each bucket - only process resources, skip apps
             val results = (0 until numberOfBuckets).map { bucketIndex ->
                 val bucketTime = startTime + (bucketIndex * bucketSize) + (bucketSize / 2) // Middle of bucket
 
@@ -186,52 +187,43 @@ class SqliteDb(
 
                 if (measurementsInBucket.isEmpty()) {
                     MonitorEvaluation(
-                        apps = emptyList(),
+                        apps = emptyList(), // Always empty for performance
                         resources = emptyList(),
                         time = bucketTime
                     )
                 } else {
                     val measurementIds = measurementsInBucket.map { it[Tables.Measurement.id] }
 
-                    // Get resource data for this bucket and average in Kotlin (simpler than complex SQL)
-                    val resourceEntries = Tables.ResourceEntry
-                        .selectAll()
+                    // Only fetch resource data - skip apps for performance
+                    // Use SQL GROUP BY and AVG to do aggregation in database instead of Kotlin
+                    val avgResources = Tables.ResourceEntry
+                        .select(
+                            Tables.ResourceEntry.resourceId,
+                            Tables.ResourceEntry.usage.avg(),
+                            Tables.ResourceEntry.max.avg(),
+                            Tables.ResourceEntry.description
+                        )
                         .where { Tables.ResourceEntry.measurementIdTable inList measurementIds }
-                        .toList()
-
-                    // Group by resource ID and calculate averages
-                    val avgResources = resourceEntries
-                        .groupBy { it[Tables.ResourceEntry.resourceId] }
-                        .map { (resourceId, entries) ->
-                            val avgUsage = entries.map { it[Tables.ResourceEntry.usage] }.average().toFloat()
-                            val avgMax = entries.map { it[Tables.ResourceEntry.max] }.average().toFloat()
-                            val description = entries.firstOrNull()?.get(Tables.ResourceEntry.description) ?: ""
-
+                        .groupBy(Tables.ResourceEntry.resourceId)
+                        .map { row ->
                             MonitorStatus.ResourceStatus(
-                                id = resourceId,
-                                name = resourceId,
-                                description = description,
-                                current = avgUsage,
-                                total = avgMax,
+                                id = row[Tables.ResourceEntry.resourceId],
+                                name = row[Tables.ResourceEntry.resourceId],
+                                description = row[Tables.ResourceEntry.description] ?: "",
+                                current = row[Tables.ResourceEntry.usage.avg()]?.toFloat() ?: 0f,
+                                total = row[Tables.ResourceEntry.max.avg()]?.toFloat() ?: 1f,
                             )
                         }
 
-                    // For apps, get the most recent status in the bucket
-                    val latestMeasurementId = measurementIds.maxOrNull() ?: measurementIds.first()
-                    val apps = Tables.AppEntry
-                        .selectAll()
-                        .where { Tables.AppEntry.measurementIdTable eq latestMeasurementId }
-                        .map(::toAppStatus)
-
                     MonitorEvaluation(
-                        apps = apps,
+                        apps = emptyList(), // Skip apps for performance - only resources needed for graphs
                         resources = avgResources,
                         time = bucketTime
                     )
                 }
             }
 
-            logger.info("Retrieved and averaged ${measurementsInRange.size} measurements into $numberOfBuckets buckets")
+            logger.info("Retrieved and averaged ${measurementsInRange.size} measurements into $numberOfBuckets buckets (resources only)")
             results
         }
     }
