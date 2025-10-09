@@ -374,36 +374,33 @@ class SqliteDb(
     suspend fun deleteOldMeasurementsPerResource(resourcePurgeSettings: Map<String, Duration>) =
         withContext(Dispatchers.IO) {
             writeMutex.withLock {
-                transaction {
-                    resourcePurgeSettings.forEach { (resourceId, duration) ->
-                        val startDateFormatted = DateTimeFormatter
-                            .ISO_INSTANT
-                            .format(Instant.ofEpochMilli(System.currentTimeMillis() - duration.inWholeMilliseconds))
-                        val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
-                        logger.info("Deleting resource entries for $resourceId older than date: $startDateFormatted")
+                resourcePurgeSettings.forEach { (resourceId, duration) ->
+                    if (duration.isNegative()) {
+                        logger.warn("Skip purge for $resourceId because duration is negative: $duration")
+                        return@forEach
+                    }
+                    val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+                    val startDateFormatted = DateTimeFormatter
+                        .ISO_INSTANT
+                        .format(Instant.ofEpochMilli(threshold))
+                    logger.info("Purging resource entries for $resourceId older than date: $startDateFormatted (threshold=$threshold ms epoch)")
 
-                        // Modern DSL subquery
-                        val measurementIdSubQuery = Tables.Measurement
-                            .select(Tables.Measurement.id)
-                            .where { Tables.Measurement.timestamp less threshold }
+                    // Build subquery once per resource. This stays small and is handled entirely by SQLite.
+                    val measurementIdSubQuery = Tables.Measurement
+                        .select(Tables.Measurement.id)
+                        .where { Tables.Measurement.timestamp less threshold }
 
-                        val candidateMeasurementIds = Tables.ResourceEntry
-                            .innerJoin(Tables.Measurement)
-                            .select(Tables.Measurement.id)
-                            .where {
-                                (Tables.ResourceEntry.resourceId like "$resourceId%") and
-                                        (Tables.Measurement.timestamp less threshold)
-                            }
-                            .map { it[Tables.Measurement.id] }
-                            .distinct()
-
-                        if (candidateMeasurementIds.isNotEmpty()) {
-                            val deleted = Tables.ResourceEntry.deleteWhere {
-                                (Tables.ResourceEntry.resourceId like "$resourceId%") and
-                                        (Tables.ResourceEntry.measurementIdTable inSubQuery measurementIdSubQuery)
-                            }
-                            logger.info("Deleted $deleted resource rows for $resourceId older than threshold $threshold")
+                    // Single SQL DELETE; no need to first materialize candidate IDs (prevents OOM for huge tables).
+                    val deleted = transaction {
+                        Tables.ResourceEntry.deleteWhere {
+                            (Tables.ResourceEntry.resourceId like "$resourceId%") and
+                                    (Tables.ResourceEntry.measurementIdTable inSubQuery measurementIdSubQuery)
                         }
+                    }
+                    if (deleted > 0) {
+                        logger.info("Deleted $deleted resource rows for $resourceId older than threshold $threshold")
+                    } else {
+                        logger.debug("No rows to delete for $resourceId (threshold=$threshold)")
                     }
                 }
             }
