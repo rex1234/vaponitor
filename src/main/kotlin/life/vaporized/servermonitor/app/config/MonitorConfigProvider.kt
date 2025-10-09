@@ -1,10 +1,13 @@
 package life.vaporized.servermonitor.app.config
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.decodeFromString
 import life.vaporized.servermonitor.app.config.model.MonitorConfig
+import life.vaporized.servermonitor.app.monitor.IResourceMonitor
+import life.vaporized.servermonitor.app.monitor.model.AppDefinition
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
@@ -32,14 +35,14 @@ class MonitorConfigProvider {
 
     private val logger = getLogger()
 
-    private val monitorConfig by lazy {
+    private val monitorConfig: MonitorConfig by lazy {
         try {
             val yamlData = File(CONFIG_FILENAME).readText()
             Yaml.Default.decodeFromString<MonitorConfig>(yamlData).also {
                 logger.info(
                     "Loaded app monitors [{}] and resource [{}]",
                     it.apps?.joinToString { app -> app.name } ?: "none",
-                    it.resources?.enabled?.joinToString() ?: "none"
+                    it.resources?.items?.joinToString { item -> item.id } ?: "none"
                 )
             }
         } catch (e: Exception) {
@@ -47,23 +50,29 @@ class MonitorConfigProvider {
         }
     }
 
-    val resourceMonitorInterval
+    val resourceMonitorInterval: Duration
         get() = monitorConfig.appMonitorRefreshIntervalS.seconds
 
-    val appMonitorInterval
+    val appMonitorInterval: Duration
         get() = monitorConfig.resourceMonitorRefreshIntervalS.seconds
 
-    val historyDuration
+    val historyDuration: Duration
         get() = monitorConfig.historyDurationM.minutes
 
-    val dbPurgeDuration
-        get() = monitorConfig.dbPurgeDays.days
+    val dbPurgeDuration: Duration?
+        get() = monitorConfig.dbPurgeDays?.days
 
-    val appDefinitions
+    val resourcePurgeSettings: Map<String, Duration>
+        get() = monitorConfig.resources?.items
+            ?.filter { it.dbPurgeDays != null }
+            ?.associate { it.id to it.dbPurgeDays!!.days }
+            ?: emptyMap()
+
+    val appDefinitions: List<AppDefinition>
         get() = monitorConfig.apps ?: emptyList()
 
-    val enabledResourceMonitors
+    val enabledResourceMonitors: List<IResourceMonitor>
         get() = RESOURCE_MONITORS.filter {
-            it.id in (monitorConfig.resources?.enabled ?: emptyList())
+            it.id in (monitorConfig.resources?.items?.map { item -> item.id } ?: emptyList())
         }
 }

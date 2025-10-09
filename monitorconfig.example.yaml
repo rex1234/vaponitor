@@ -1,12 +1,17 @@
 app_monitor_interval_s: 60
 resource_monitor_interval_s: 15
 history_duration_m: 1660
+db_purge_days: 30                   # Global default purge setting
 
 resources:
-  enabled:
-    - "RCpu"
-    - "RRam"
-    - "RDisk"
+  items:
+    - id: "RCpu"
+      db_purge_days: 7  # Keep CPU data for 7 days
+    - id: "RRam"
+      db_purge_days: 14             # Keep RAM data for 14 days
+    - id: "RDisk"
+      db_purge_days: 60             # Keep disk data for 60 days
+    - id: "RTemp"                   # No db_purge_days - will not be purged
 
 apps:
   - name: Poker app

@@ -10,6 +10,14 @@ class CleanDatabaseJob(
 ) : ICronJob {
 
     override suspend fun run() {
-        database.deleteOldMeasurements(duration = monitorConfig.dbPurgeDuration)
+        val resourcePurgeSettings = monitorConfig.resourcePurgeSettings
+
+        if (resourcePurgeSettings.isNotEmpty()) {
+            // Use per-resource cleanup
+            database.deleteOldMeasurementsPerResource(resourcePurgeSettings)
+        }
+
+        if (monitorConfig.dbPurgeDuration != null)
+            database.deleteOldMeasurements(duration = monitorConfig.dbPurgeDuration!!)
     }
 }

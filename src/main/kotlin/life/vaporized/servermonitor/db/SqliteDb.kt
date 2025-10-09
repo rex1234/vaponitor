@@ -346,6 +346,58 @@ class SqliteDb(
     }
 
     /**
+     * Deletes old measurements with per-resource purge durations.
+     * Each resource can have its own retention period.
+     */
+    suspend fun deleteOldMeasurementsPerResource(resourcePurgeSettings: Map<String, Duration>) =
+        withContext(Dispatchers.IO) {
+            transaction {
+                // For each resource, delete its old entries based on its specific purge duration
+                resourcePurgeSettings.forEach { (resourceId, duration) ->
+                    val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+
+                    // Find measurement IDs that have old resource entries for this specific resource
+                    val oldMeasurementIds = Tables.ResourceEntry
+                        .innerJoin(Tables.Measurement)
+                        .selectAll()
+                        .where {
+                            (Tables.ResourceEntry.resourceId eq resourceId) and
+                                    (Tables.Measurement.timestamp less threshold)
+                        }
+                        .map { it[Tables.Measurement.id] }
+
+                    if (oldMeasurementIds.isNotEmpty()) {
+                        // Delete old resource entries for this specific resource
+                        Tables.ResourceEntry.deleteWhere {
+                            (Tables.ResourceEntry.resourceId eq resourceId) and
+                                    (Tables.ResourceEntry.measurementIdTable inList oldMeasurementIds)
+                        }
+
+                        // Check if any measurements no longer have any associated entries and delete them
+                        oldMeasurementIds.forEach { measurementId ->
+                            val hasResourceEntries = Tables.ResourceEntry
+                                .selectAll()
+                                .where { Tables.ResourceEntry.measurementIdTable eq measurementId }
+                                .count() > 0
+
+                            val hasAppEntries = Tables.AppEntry
+                                .selectAll()
+                                .where { Tables.AppEntry.measurementIdTable eq measurementId }
+                                .count() > 0
+
+                            // If measurement has no associated entries, delete it
+                            if (!hasResourceEntries && !hasAppEntries) {
+                                Tables.Measurement.deleteWhere {
+                                    Tables.Measurement.id eq measurementId
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
      * Retrieves the status change history for a specific app identified by [appId].
      * Returns a list of pairs containing the timestamp and the corresponding [MonitorStatus.AppStatus].
      * The list is ordered from newest to oldest status change.
