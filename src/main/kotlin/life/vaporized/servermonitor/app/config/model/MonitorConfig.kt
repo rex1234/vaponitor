@@ -13,7 +13,7 @@ class MonitorConfig(
     @SerialName("history_duration_m")
     val historyDurationM: Int,
     @SerialName("db_purge_days")
-    val dbPurgeDays: Int?,
+    val dbPurgeDays: Int? = null,
     @SerialName("apps")
     val apps: List<AppDefinition>?,
     @SerialName("resources")
