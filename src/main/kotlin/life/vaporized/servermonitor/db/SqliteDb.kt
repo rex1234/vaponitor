@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
@@ -361,7 +362,7 @@ class SqliteDb(
                         .innerJoin(Tables.Measurement)
                         .selectAll()
                         .where {
-                            (Tables.ResourceEntry.resourceId eq resourceId) and
+                            (Tables.ResourceEntry.resourceId like "$resourceId%") and
                                     (Tables.Measurement.timestamp less threshold)
                         }
                         .map { it[Tables.Measurement.id] }
@@ -369,7 +370,7 @@ class SqliteDb(
                     if (oldMeasurementIds.isNotEmpty()) {
                         // Delete old resource entries for this specific resource
                         Tables.ResourceEntry.deleteWhere {
-                            (Tables.ResourceEntry.resourceId eq resourceId) and
+                            (Tables.ResourceEntry.resourceId like "$resourceId%") and
                                     (Tables.ResourceEntry.measurementIdTable inList oldMeasurementIds)
                         }
 
@@ -393,9 +394,9 @@ class SqliteDb(
                             }
                         }
                     }
+                }
             }
         }
-    }
 
     /**
      * Retrieves the status change history for a specific app identified by [appId].
