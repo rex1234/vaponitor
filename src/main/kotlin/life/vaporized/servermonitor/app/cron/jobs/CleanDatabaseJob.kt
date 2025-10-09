@@ -17,7 +17,12 @@ class CleanDatabaseJob(
             database.deleteOldMeasurementsPerResource(resourcePurgeSettings)
         }
 
-        if (monitorConfig.dbPurgeDuration != null)
+        if (monitorConfig.dbPurgeDuration != null) {
             database.deleteOldMeasurements(duration = monitorConfig.dbPurgeDuration!!)
+        }
+
+        if (monitorConfig.dbPurgeDuration != null || resourcePurgeSettings.isNotEmpty()) {
+            database.vacuumNow()
+        }
     }
 }

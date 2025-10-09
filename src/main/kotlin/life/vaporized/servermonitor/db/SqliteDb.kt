@@ -403,22 +403,6 @@ class SqliteDb(
                                         (Tables.ResourceEntry.measurementIdTable inSubQuery measurementIdSubQuery)
                             }
                             logger.info("Deleted $deleted resource rows for $resourceId older than threshold $threshold")
-
-                            candidateMeasurementIds.forEach { measurementId ->
-                                val hasResourceEntries = Tables.ResourceEntry
-                                    .selectAll()
-                                    .where { Tables.ResourceEntry.measurementIdTable eq measurementId }
-                                    .limit(1)
-                                    .empty().not()
-                                val hasAppEntries = Tables.AppEntry
-                                    .selectAll()
-                                    .where { Tables.AppEntry.measurementIdTable eq measurementId }
-                                    .limit(1)
-                                    .empty().not()
-                                if (!hasResourceEntries && !hasAppEntries) {
-                                    Tables.Measurement.deleteWhere { Tables.Measurement.id eq measurementId }
-                                }
-                            }
                         }
                     }
                 }
@@ -450,6 +434,35 @@ class SqliteDb(
                 val timestamp = row[Tables.Measurement.timestamp]
                 val appStatus = toAppStatus(row)
                 timestamp to appStatus
+            }
+        }
+    }
+
+    /**
+     * Manually triggers a WAL checkpoint (TRUNCATE) and VACUUM to reclaim disk space.
+     * Safe to call; serialized with other writers via writeMutex.
+     */
+    suspend fun vacuumNow() = withContext(Dispatchers.IO) {
+        writeMutex.withLock {
+            try {
+                DriverManager.getConnection("jdbc:sqlite:measurements.db").use { conn ->
+                    conn.createStatement().use { st ->
+                        val freelistBefore =
+                            st.executeQuery("PRAGMA freelist_count;").use { rs -> if (rs.next()) rs.getLong(1) else -1 }
+                        val pageCountBefore =
+                            st.executeQuery("PRAGMA page_count;").use { rs -> if (rs.next()) rs.getLong(1) else -1 }
+                        logger.info("Manual vacuum start: freelist=$freelistBefore pages=$pageCountBefore")
+                        st.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+                        st.execute("VACUUM;")
+                        val pageCountAfter =
+                            st.executeQuery("PRAGMA page_count;").use { rs -> if (rs.next()) rs.getLong(1) else -1 }
+                        val freelistAfter =
+                            st.executeQuery("PRAGMA freelist_count;").use { rs -> if (rs.next()) rs.getLong(1) else -1 }
+                        logger.info("Manual vacuum complete: pagesBefore=$pageCountBefore pagesAfter=$pageCountAfter freelistAfter=$freelistAfter")
+                    }
+                }
+            } catch (ex: Exception) {
+                logger.warn("Manual vacuum failed: ${ex.message}")
             }
         }
     }
