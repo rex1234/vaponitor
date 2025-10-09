@@ -15,6 +15,7 @@ import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import life.vaporized.servermonitor.app.util.getLogger
 import net.mamoe.yamlkt.Yaml
+import watchFile
 import java.io.File
 
 class MonitorConfigProvider {
@@ -35,7 +36,9 @@ class MonitorConfigProvider {
 
     private val logger = getLogger()
 
-    private val monitorConfig: MonitorConfig by lazy {
+    private var validConfig: MonitorConfig? = null
+
+    private val monitorConfig: MonitorConfig by watchFile(CONFIG_FILENAME) {
         try {
             val yamlData = File(CONFIG_FILENAME).readText()
             Yaml.Default.decodeFromString<MonitorConfig>(yamlData).also {
@@ -44,9 +47,15 @@ class MonitorConfigProvider {
                     it.apps?.joinToString { app -> app.name } ?: "none",
                     it.resources?.items?.joinToString { item -> item.id } ?: "none"
                 )
+                validConfig = it
             }
         } catch (e: Exception) {
-            throw IllegalStateException("Failed to load monitor config", e)
+            if (validConfig == null) {
+                throw IllegalStateException("Failed to load monitor config", e)
+            } else {
+                logger.error("Error while reloading monitor config, keeping the old one", e)
+                validConfig!!
+            }
         }
     }
 
