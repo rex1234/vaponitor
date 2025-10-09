@@ -2,6 +2,8 @@ package life.vaporized.servermonitor.db
 
 import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.model.AppDefinition
@@ -13,7 +15,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.and
@@ -22,18 +24,31 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.sql.DriverManager
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 class SqliteDb(
     private val monitorConfig: MonitorConfigProvider,
 ) {
 
     private val logger = getLogger()
+    private val writeMutex = Mutex() // serialize writes to avoid SQLITE_BUSY
 
     suspend fun init() = withContext(Dispatchers.IO) {
         logger.info("Initializing SQLite database")
 
         Class.forName("org.sqlite.JDBC")
         Database.connect("jdbc:sqlite:measurements.db", driver = "org.sqlite.JDBC")
+
+        // Set WAL and other pragmas OUTSIDE a transaction (journal_mode change forbidden inside one)
+        DriverManager.getConnection("jdbc:sqlite:measurements.db").use { conn ->
+            conn.createStatement().use { st ->
+                st.execute("PRAGMA journal_mode=WAL;")
+                st.execute("PRAGMA busy_timeout=5000;")
+                st.execute("PRAGMA synchronous=NORMAL;")
+            }
+        }
 
         transaction {
             // Create tables if they don't exist
@@ -60,13 +75,15 @@ class SqliteDb(
     }
 
     suspend fun insertToDb(evaluation: MonitorEvaluation) = withContext(Dispatchers.IO) {
-        transaction {
-            val measurementId = Tables.Measurement.insertAndGetId {
-                it[timestamp] = System.currentTimeMillis()
-            }.value
+        writeMutex.withLock { // ensure only one writer at a time
+            transaction {
+                val measurementId = Tables.Measurement.insertAndGetId {
+                    it[timestamp] = System.currentTimeMillis()
+                }.value
 
-            evaluation.apps.forEach { insertAppStatus(measurementId, it, shouldDeleteLast = true) }
-            evaluation.resources.forEach { insertResourceStatus(measurementId, it) }
+                evaluation.apps.forEach { insertAppStatus(measurementId, it, shouldDeleteLast = true) }
+                evaluation.resources.forEach { insertResourceStatus(measurementId, it) }
+            }
         }
     }
 
@@ -323,25 +340,29 @@ class SqliteDb(
      * This helps to keep the database size manageable.
      */
     suspend fun deleteOldMeasurements(duration: Duration) = withContext(Dispatchers.IO) {
-        transaction {
-            val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+        writeMutex.withLock {
+            transaction {
+                val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+                val startDateFormatted = DateTimeFormatter
+                    .ISO_INSTANT
+                    .format(Instant.ofEpochMilli(System.currentTimeMillis() - duration.inWholeMilliseconds))
+                logger.info("Deleting all monitor entries older than date: $startDateFormatted")
 
-            val oldMeasurementIds = Tables.Measurement
-                .selectAll()
-                .where { Tables.Measurement.timestamp less threshold }
-                .orderBy(Tables.Measurement.id, SortOrder.ASC)
-                .map { it[Tables.Measurement.id] }
+                // Modern DSL: select(column).where { }
+                val measurementIdSubQuery = Tables.Measurement
+                    .select(Tables.Measurement.id)
+                    .where { Tables.Measurement.timestamp less threshold }
 
-            if (oldMeasurementIds.isNotEmpty()) {
-                Tables.AppEntry.deleteWhere {
-                    Tables.AppEntry.measurementIdTable inList oldMeasurementIds
+                val deletedAppRows = Tables.AppEntry.deleteWhere {
+                    Tables.AppEntry.measurementIdTable inSubQuery measurementIdSubQuery
                 }
-                Tables.ResourceEntry.deleteWhere {
-                    Tables.ResourceEntry.measurementIdTable inList oldMeasurementIds
+                val deletedResourceRows = Tables.ResourceEntry.deleteWhere {
+                    Tables.ResourceEntry.measurementIdTable inSubQuery measurementIdSubQuery
                 }
-                Tables.Measurement.deleteWhere {
+                val deletedMeasurements = Tables.Measurement.deleteWhere {
                     Tables.Measurement.timestamp less threshold
                 }
+                logger.info("Deleted $deletedAppRows app rows, $deletedResourceRows resource rows, $deletedMeasurements measurements (threshold=$threshold)")
             }
         }
     }
@@ -352,44 +373,50 @@ class SqliteDb(
      */
     suspend fun deleteOldMeasurementsPerResource(resourcePurgeSettings: Map<String, Duration>) =
         withContext(Dispatchers.IO) {
-            transaction {
-                // For each resource, delete its old entries based on its specific purge duration
-                resourcePurgeSettings.forEach { (resourceId, duration) ->
-                    val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+            writeMutex.withLock {
+                transaction {
+                    resourcePurgeSettings.forEach { (resourceId, duration) ->
+                        val startDateFormatted = DateTimeFormatter
+                            .ISO_INSTANT
+                            .format(Instant.ofEpochMilli(System.currentTimeMillis() - duration.inWholeMilliseconds))
+                        val threshold = System.currentTimeMillis() - duration.inWholeMilliseconds
+                        logger.info("Deleting resource entries for $resourceId older than date: $startDateFormatted")
 
-                    // Find measurement IDs that have old resource entries for this specific resource
-                    val oldMeasurementIds = Tables.ResourceEntry
-                        .innerJoin(Tables.Measurement)
-                        .selectAll()
-                        .where {
-                            (Tables.ResourceEntry.resourceId like "$resourceId%") and
-                                    (Tables.Measurement.timestamp less threshold)
-                        }
-                        .map { it[Tables.Measurement.id] }
+                        // Modern DSL subquery
+                        val measurementIdSubQuery = Tables.Measurement
+                            .select(Tables.Measurement.id)
+                            .where { Tables.Measurement.timestamp less threshold }
 
-                    if (oldMeasurementIds.isNotEmpty()) {
-                        // Delete old resource entries for this specific resource
-                        Tables.ResourceEntry.deleteWhere {
-                            (Tables.ResourceEntry.resourceId like "$resourceId%") and
-                                    (Tables.ResourceEntry.measurementIdTable inList oldMeasurementIds)
-                        }
+                        val candidateMeasurementIds = Tables.ResourceEntry
+                            .innerJoin(Tables.Measurement)
+                            .select(Tables.Measurement.id)
+                            .where {
+                                (Tables.ResourceEntry.resourceId like "$resourceId%") and
+                                        (Tables.Measurement.timestamp less threshold)
+                            }
+                            .map { it[Tables.Measurement.id] }
+                            .distinct()
 
-                        // Check if any measurements no longer have any associated entries and delete them
-                        oldMeasurementIds.forEach { measurementId ->
-                            val hasResourceEntries = Tables.ResourceEntry
-                                .selectAll()
-                                .where { Tables.ResourceEntry.measurementIdTable eq measurementId }
-                                .count() > 0
+                        if (candidateMeasurementIds.isNotEmpty()) {
+                            val deleted = Tables.ResourceEntry.deleteWhere {
+                                (Tables.ResourceEntry.resourceId like "$resourceId%") and
+                                        (Tables.ResourceEntry.measurementIdTable inSubQuery measurementIdSubQuery)
+                            }
+                            logger.info("Deleted $deleted resource rows for $resourceId older than threshold $threshold")
 
-                            val hasAppEntries = Tables.AppEntry
-                                .selectAll()
-                                .where { Tables.AppEntry.measurementIdTable eq measurementId }
-                                .count() > 0
-
-                            // If measurement has no associated entries, delete it
-                            if (!hasResourceEntries && !hasAppEntries) {
-                                Tables.Measurement.deleteWhere {
-                                    Tables.Measurement.id eq measurementId
+                            candidateMeasurementIds.forEach { measurementId ->
+                                val hasResourceEntries = Tables.ResourceEntry
+                                    .selectAll()
+                                    .where { Tables.ResourceEntry.measurementIdTable eq measurementId }
+                                    .limit(1)
+                                    .empty().not()
+                                val hasAppEntries = Tables.AppEntry
+                                    .selectAll()
+                                    .where { Tables.AppEntry.measurementIdTable eq measurementId }
+                                    .limit(1)
+                                    .empty().not()
+                                if (!hasResourceEntries && !hasAppEntries) {
+                                    Tables.Measurement.deleteWhere { Tables.Measurement.id eq measurementId }
                                 }
                             }
                         }

@@ -19,7 +19,7 @@ class CronJobManager(
     fun init() {
         logger.info("Initializing cron jobs")
         addJob(monitorConfig.appMonitorInterval, evaluateMonitorsJob)
-        //addJob(MonitorConfigProvider.CLEANUP_INTERVAL, cleanDatabaseJob)
+        addJob(MonitorConfigProvider.CLEANUP_INTERVAL, cleanDatabaseJob)
     }
 
     fun addJob(interval: Duration, cronJob: ICronJob): CronJobRunner {
