@@ -3,6 +3,7 @@ package life.vaporized.servermonitor.app
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.monitor.AppRunningMonitor
@@ -35,6 +36,7 @@ class Evaluator(
         }
         val apps = appMonitors.map { monitor ->
             async {
+                delay((50..1250).random().toLong()) // jitter to avoid sending all requests at once
                 monitor.evaluate().onEach {
                     logger.debug("Evaluation finished: ${it.id} - isError: ${it.isError}")
                 }
