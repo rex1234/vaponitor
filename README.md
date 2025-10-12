@@ -81,16 +81,20 @@ resource_monitor_interval_s: 15     # How often to check system resources
 
 # Data retention
 history_duration_m: 1660            # How long to keep data in memory (minutes)
-db_purge_days: 30                   # How long to keep data in database (days)
+db_purge_days: 30                   # Global purge rule for application data & default for resources (unless overridden)
 
-# Resource monitors to enable
+# Resource monitors (list each resource; optional per-item db_purge_days overrides or disables purging)
 resources:
-  enabled:
-    - "RCpu"      # CPU usage monitoring
-    - "RRam"      # RAM usage monitoring
-    - "RVolume"   # Disk usage monitoring
-    - "RTemp"     # CPU temperature (Linux/Raspberry Pi)
-    - "RDht"      # DHT22 sensor (custom setup)
+   items:
+      - id: "RVolume"                 # Disk usage monitoring (no db_purge_days -> not purged)
+      - id: "RRam"                    # RAM usage monitoring
+        db_purge_days: 14             # Purge RAM metrics older than 14 days
+      - id: "RCpu"                    # CPU usage monitoring
+        db_purge_days: 7              # Purge CPU metrics older than 7 days
+      - id: "RTemp"                   # CPU temperature monitoring
+        db_purge_days: 90             # Purge temp metrics older than 90 days
+      - id: "RDht"                    # DHT22 sensor monitoring
+        db_purge_days: 60             # Purge DHT metrics older than 60 days
 
 # Application monitors
 apps:
@@ -113,19 +117,30 @@ apps:
 - `app_monitor_interval_s`: Frequency for checking application status (recommended: 30-120 seconds)
 - `resource_monitor_interval_s`: Frequency for system resource checks (recommended: 10-30 seconds)
 - `history_duration_m`: In-memory data retention for dashboard graphs
-- `db_purge_days`: Database cleanup interval to prevent unlimited growth
+- `db_purge_days` (global): Default purge window (in days) for application monitor data. Resource monitors inherit this
+  unless they specify their own `db_purge_days`. If a resource item omits `db_purge_days`, its data is retained
+  indefinitely (no purging) to allow long-term historical tracking.
+
+#### Per-Resource Retention (`db_purge_days` overrides)
+
+Each resource entry under `resources.items` may include its own `db_purge_days` to customize (or disable) purging:
+
+- Present with a number: Purge measurements for that resource older than the specified days.
+- Omitted: Do not purge that resource's historical data (kept indefinitely).
+- Global `db_purge_days`: Always applies to application monitoring data and any resource without an override unless that
+  resource omits the field (in which case it is exempt from purging).
 
 #### Resource Monitors
 
 Available resource monitors:
 
-| ID        | Name                  | Description                              | Requirements                  |
-|-----------|-----------------------|------------------------------------------|-------------------------------|
-| `RCpu`    | CPU Usage             | Current CPU utilization percentage       | Linux with `mpstat`           |
-| `RRam`    | RAM Usage             | Memory usage in MB                       | Cross-platform (OSHI library) |
-| `RVolume` | Disk Usage            | Disk space usage for all mounted volumes | Cross-platform                |
-| `RTemp`   | CPU Temperature       | CPU temperature in Celsius               | Linux/Raspberry Pi            |
-| `RDht`    | Environmental Sensors | DHT22 temperature/humidity sensor        | Custom Python script setup    |
+| ID        | Name                  | Description                              | Requirements                  | Supports override |
+|-----------|-----------------------|------------------------------------------|-------------------------------|-------------------|
+| `RCpu`    | CPU Usage             | Current CPU utilization percentage       | Linux with `mpstat`           | Yes               |
+| `RRam`    | RAM Usage             | Memory usage in MB                       | Cross-platform (OSHI library) | Yes               |
+| `RVolume` | Disk Usage            | Disk space usage for all mounted volumes | Cross-platform                | Yes               |
+| `RTemp`   | CPU Temperature       | CPU temperature in Celsius               | Linux/Raspberry Pi            | Yes               |
+| `RDht`    | Environmental Sensors | DHT22 temperature/humidity sensor        | Custom Python script setup    | Yes               |
 
 #### Application Monitors
 
@@ -195,7 +210,7 @@ The application uses SQLite for data persistence:
 
 - Database file: `measurements.db`
 - Automatic table creation on first run
-- Configurable data purging to prevent unlimited growth
+- Configurable data purging (global + per-resource overrides)
 - Stores both application status and resource measurements with timestamps
 
 ## Web Dashboard
