@@ -11,13 +11,18 @@ import life.vaporized.servermonitor.app.util.repeatOnError
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.util.concurrent.TimeUnit // added for timeout configuration
 
 class AppRunningMonitor(
     private val app: AppDefinition,
 ) : IMonitor<MonitorStatus.AppStatus> {
 
     private val logger = getLogger()
-    private val httpClient = OkHttpClient()
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(2, TimeUnit.SECONDS)
+        .readTimeout(2, TimeUnit.SECONDS)
+        .writeTimeout(2, TimeUnit.SECONDS)
+        .build()
 
     override val name: String
         get() = app.name
