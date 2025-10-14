@@ -14,6 +14,8 @@ data class AppDefinition(
     private val _httpsUrl: String? = null,
     val basicAuthUsername: String? = null,
     val basicAuthPassword: String? = null,
+    @SerialName("pangolin_auth_token")
+    val pangolinAuthToken: String? = null,
 ) {
 
     val httpUrl: String?

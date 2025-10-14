@@ -32,22 +32,29 @@ class AppRunningMonitor(
 
     override val id = name
 
-    override suspend fun evaluate(): List<MonitorStatus.AppStatus> = coroutineScope {
-        val isProcessRunning = async {
-            app.command?.let { isProcessRunning(app) } ?: true
-        }
-
-        val basicAuth = if (app.basicAuthUsername != null && app.basicAuthPassword != null) {
+    val basicAuthCredentials: String?
+        get() = if (app.basicAuthUsername != null && app.basicAuthPassword != null) {
             Credentials.basic(app.basicAuthUsername, app.basicAuthPassword)
         } else {
             null
         }
 
+    val pangolinToken: Pair<String, String>?
+        get() = app.pangolinAuthToken
+            ?.split(".")
+            ?.takeIf { it.size == 2 }
+            ?.let { it[0] to it[1] }
+
+    override suspend fun evaluate(): List<MonitorStatus.AppStatus> = coroutineScope {
+        val isProcessRunning = async {
+            app.command?.let { isProcessRunning(app) } != false
+        }
+
         val isReachableHttp = async {
-            app.httpUrl?.let { isUrlReachable(it, basicAuth) }
+            app.httpUrl?.let { isUrlReachable(it) }
         }
         val isHttpsReachableHttps = async {
-            app.httpsUrl?.let { isUrlReachable(it, basicAuth) }
+            app.httpsUrl?.let { isUrlReachable(it) }
         }
         MonitorStatus.AppStatus(
             app = app,
@@ -84,16 +91,19 @@ class AppRunningMonitor(
 
     private suspend fun isUrlReachable(
         url: String,
-        basicAuth: String?,
     ): Boolean = withContext(Dispatchers.IO) {
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(url)
             .also {
-                if (basicAuth != null) {
-                    it.header("Authorization", basicAuth)
+                basicAuthCredentials?.let { credentials ->
+                    it.header("Authorization", credentials)
+                }
+                pangolinToken?.let { token ->
+                    it.header("P-Access-Token-Id", token.first)
+                    it.header("P-Access-Token", token.second)
                 }
             }
-            .build()
+        val request = requestBuilder.build()
 
         repeatOnError(
             default = false,

@@ -18,6 +18,7 @@ apps:
     description: "Let's play poker"
     url: "localhost:8080"
     https: "callingstation.net"
+    pangolin_auth_token: "REPLACE_WITH_TOKEN"   # Optional Pangolin auth token sent as Pangolin-Auth header
 
   - name: Raspberry
     description: RP

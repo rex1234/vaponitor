@@ -104,6 +104,7 @@ apps:
     https: "secure.example.com"     # HTTPS endpoint (optional)
     basicAuthUsername: "user"       # Basic auth (optional)
     basicAuthPassword: "pass"       # Basic auth (optional)
+    pangolin_auth_token: "TOKEN"    # Optional Pangolin auth token -> sent as Pangolin-Auth header
 
   - name: "Local Service"
     description: "Local application"
@@ -151,6 +152,7 @@ Applications can be monitored in two ways:
 - `url`: HTTP endpoint (format: `domain.com:port` or `domain.com`)
 - `https`: HTTPS endpoint (format: `domain.com:port` or `domain.com`)
 - `basicAuthUsername`/`basicAuthPassword`: For basic authentication
+- `pangolin_auth_token`: If present, the monitor sends header `Pangolin-Auth: <token>` with each HTTP/HTTPS probe.
 
 **Command-based Monitoring:**
 
