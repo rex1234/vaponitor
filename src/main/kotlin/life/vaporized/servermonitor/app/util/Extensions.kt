@@ -15,7 +15,7 @@ suspend fun <T> repeatOnError(
         try {
             return action()
         } catch (e: Exception) {
-            if (current < times) {
+            if (current < times - 1) {
                 delay(delay)
             } else {
                 logError(e)

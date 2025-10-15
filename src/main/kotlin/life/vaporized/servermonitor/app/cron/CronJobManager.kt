@@ -27,7 +27,7 @@ class CronJobManager(
 
         val cronJobRunner = CronJobRunner(interval)
         cronJobRunner.start {
-            logger.info("Running job ${cronJob::class.simpleName}")
+            logger.debug("Running job ${cronJob::class.simpleName}")
             cronJob.run()
         }
         runners.add(cronJobRunner)
