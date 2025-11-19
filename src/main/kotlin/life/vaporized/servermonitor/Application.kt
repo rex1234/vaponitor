@@ -3,6 +3,7 @@ package life.vaporized.servermonitor
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.install
 import io.ktor.server.netty.EngineMain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,14 +17,14 @@ import life.vaporized.servermonitor.plugins.configureRouting
 import life.vaporized.servermonitor.plugins.configureTemplating
 import mainModule
 import org.koin.ktor.ext.inject
-import org.koin.ktor.plugin.koin
+import org.koin.ktor.plugin.Koin
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
 }
 
 fun Application.module() {
-    koin {
+    install(Koin) {
         // printLogger()
         modules(mainModule)
     }

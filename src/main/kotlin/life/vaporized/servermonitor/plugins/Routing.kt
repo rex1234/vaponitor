@@ -7,7 +7,10 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.routing
+import life.vaporized.servermonitor.app.StatusRepository
+import life.vaporized.servermonitor.app.config.MonitorConfigProvider
 import life.vaporized.servermonitor.app.util.getLogger
+import life.vaporized.servermonitor.db.SqliteDb
 import life.vaporized.servermonitor.plugins.routes.appDetailsRoute
 import life.vaporized.servermonitor.plugins.routes.errorRoute
 import life.vaporized.servermonitor.plugins.routes.indexRoute
@@ -15,6 +18,11 @@ import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val logger = getLogger()
+
+    val statusRepository = get<StatusRepository>()
+    val monitorConfig = get<MonitorConfigProvider>()
+    val database = get<SqliteDb>()
+
     install(Resources)
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -26,8 +34,8 @@ fun Application.configureRouting() {
         }
     }
     routing {
-        indexRoute(get(), get())
-        appDetailsRoute(get(), get())
+        indexRoute(statusRepository, monitorConfig)
+        appDetailsRoute(statusRepository, database)
         staticResources("/", "static")
     }
 }
