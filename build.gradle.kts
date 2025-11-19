@@ -1,11 +1,8 @@
-val kotlin_version: String by project
-val logback_version: String by project
-
 plugins {
-    kotlin("jvm") version "2.0.0"
-    id("io.ktor.plugin") version "2.3.12"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
-    id("io.gitlab.arturbosch.detekt") version "1.23.1"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.detekt)
 }
 
 group = "life.vaporized"
@@ -39,52 +36,45 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation(libs.kotlinx.datetime)
 
-    implementation("io.ktor:ktor-server-core-jvm")
-    implementation("io.ktor:ktor-server-thymeleaf-jvm")
-    implementation("io.ktor:ktor-server-metrics-jvm")
-    implementation("io.ktor:ktor-server-http-redirect-jvm")
-    implementation("io.ktor:ktor-server-compression-jvm")
-    implementation("io.ktor:ktor-server-resources-jvm")
-    implementation("io.ktor:ktor-server-host-common-jvm")
-    implementation("io.ktor:ktor-server-status-pages-jvm")
-    implementation("io.ktor:ktor-server-netty-jvm")
-    implementation("io.ktor:ktor-server-config-yaml")
+    // Ktor Server (using bundle)
+    implementation(libs.bundles.ktor.server)
 
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation(libs.logback.classic)
 
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-    implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.squareup.okhttp3:logging-interceptor")
+    // OkHttp
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
-    implementation(platform("io.insert-koin:koin-bom:3.5.6"))
-    implementation("io.insert-koin:koin-core")
-    implementation("io.insert-koin:koin-ktor")
+    // Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.ktor)
 
-    implementation("org.jetbrains.exposed:exposed-core:0.54.0")
-    implementation("org.jetbrains.exposed:exposed-dao:0.54.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.54.0")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.54.0")
-    implementation("org.xerial:sqlite-jdbc:3.46.1.0")
+    // Exposed (using bundle)
+    implementation(libs.bundles.exposed)
+    implementation(libs.sqlite.jdbc)
 
-    implementation("org.yaml:snakeyaml:2.0")
-    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    // Other
+    implementation(libs.snakeyaml)
+    implementation(libs.dotenv.kotlin)
 
-    implementation("me.jakejmattson:DiscordKt:0.23.4") {
+    implementation(libs.discordkt) {
         exclude(group = "org.slf4j", module = "slf4j-simple")
     }
-    implementation("com.github.oshi:oshi-core:6.4.1")
+    implementation(libs.oshi.core)
 
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
+    detektPlugins(libs.detekt.formatting)
 
-    testImplementation("io.ktor:ktor-server-test-host-jvm")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.kotlin.test.junit)
 }
 
 detekt {
     buildUponDefaultConfig = true // Use default rules
     allRules = false // Disable all rules (override per file)
-    config = files("$rootDir/detekt-config.yml") // Custom configuration file (optional)
+    config.setFrom(files("$rootDir/detekt-config.yml")) // Custom configuration file (optional)
     baseline = file("$rootDir/detekt-baseline.xml") // Ignore existing issues file (optional)
 }
