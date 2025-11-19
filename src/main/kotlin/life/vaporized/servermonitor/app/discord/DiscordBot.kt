@@ -38,9 +38,9 @@ class DiscordBot {
                 isReady = true
             }
 
+            // we need to specify this to receive the content of messages
+            @OptIn(PrivilegedIntent::class)
             kord.login {
-                // we need to specify this to receive the content of messages
-                @OptIn(PrivilegedIntent::class)
                 intents += Intent.MessageContent
             }
         } catch (e: Exception) {

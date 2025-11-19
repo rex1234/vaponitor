@@ -41,6 +41,11 @@ dependencies {
     // Ktor Server (using bundle)
     implementation(libs.bundles.ktor.server)
 
+    // Ktor Client (required by Discord/Kord library)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
     implementation(libs.logback.classic)
 
     // OkHttp
@@ -61,9 +66,7 @@ dependencies {
     implementation(libs.snakeyaml)
     implementation(libs.dotenv.kotlin)
 
-    implementation(libs.discordkt) {
-        exclude(group = "org.slf4j", module = "slf4j-simple")
-    }
+    implementation(libs.kord.core)
     implementation(libs.oshi.core)
 
     detektPlugins(libs.detekt.formatting)
