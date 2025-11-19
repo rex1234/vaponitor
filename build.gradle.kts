@@ -22,7 +22,7 @@ tasks {
         archiveVersion.set("")
         mergeServiceFiles()
         manifest {
-            attributes(mapOf("Main-Class" to "MainKt"))
+            attributes(mapOf("Main-Class" to "io.ktor.server.netty.EngineMain"))
         }
     }
 
