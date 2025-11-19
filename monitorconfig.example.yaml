@@ -5,13 +5,15 @@ db_purge_days: 30                   # Global default purge setting
 
 resources:
   items:
-    - id: "RCpu"
-      db_purge_days: 7  # Keep CPU data for 7 days
+    - id: "RVolume"                 # No db_purge_days - will not be purged
     - id: "RRam"
-      db_purge_days: 14             # Keep RAM data for 14 days
-    - id: "RDisk"
-      db_purge_days: 60             # Keep disk data for 60 days
-    - id: "RTemp"                   # No db_purge_days - will not be purged
+      db_purge_days: 14             # Keep RAM data for 2 weeks
+    - id: "RCpu"
+      db_purge_days: 7              # Keep CPU data for 7 days only
+    - id: "RTemp"
+      db_purge_days: 90             # Keep temperature data for 3 months
+    - id: "RDht"
+      db_purge_days: 60             # Keep DHT sensor data for 2 months
 
 apps:
   - name: Poker app

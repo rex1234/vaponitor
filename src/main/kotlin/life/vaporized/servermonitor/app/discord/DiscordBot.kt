@@ -2,12 +2,14 @@ package life.vaporized.servermonitor.app.discord
 
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
+import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,6 +68,13 @@ class DiscordBot {
         if (isReady) {
             val channel = kord.getChannelOf<TextChannel>(Snowflake(EnvConfig.discordChannel))
             channel?.createMessage(message)
+        }
+    }
+
+    fun sendEmbed(embedBuilder: EmbedBuilder.() -> Unit) = scope.launch {
+        if (isReady) {
+            val channel = kord.getChannelOf<TextChannel>(Snowflake(EnvConfig.discordChannel))
+            channel?.createEmbed(embedBuilder)
         }
     }
 }
