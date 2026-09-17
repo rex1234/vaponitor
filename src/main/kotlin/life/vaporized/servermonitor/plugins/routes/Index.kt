@@ -13,8 +13,8 @@ import life.vaporized.servermonitor.app.monitor.model.GraphDefinition
 import life.vaporized.servermonitor.app.monitor.model.GraphDefinition.GraphData
 import life.vaporized.servermonitor.app.monitor.model.MonitorEvaluation
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
-import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.GoveeMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import java.text.SimpleDateFormat
@@ -59,10 +59,10 @@ fun Route.indexRoute(
             it?.resourceWithId(RaspberryTempMonitor.id)?.usage
         }
         val dhtTemp = timelineEntries.map {
-            it?.resourceWithId(Dht22Monitor.tempId)?.current
+            it?.resourceWithId(GoveeMonitor.tempId)?.current
         }
         val dhtHum = timelineEntries.map {
-            it?.resourceWithId(Dht22Monitor.humidityId)?.usage
+            it?.resourceWithId(GoveeMonitor.humidityId)?.usage
         }
         val volumes = lastEval?.resources
             ?.filter { it.id.startsWith(DiskUsageMonitor.id) }
@@ -101,7 +101,7 @@ fun Route.indexRoute(
             null
         }
 
-        val sensorGraph = if (Dht22Monitor.id in enabledResources) {
+        val sensorGraph = if (GoveeMonitor.id in enabledResources) {
             GraphData<Long>(
                 graphName = "Sensors",
                 xAxis = timeline,
