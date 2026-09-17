@@ -131,8 +131,8 @@
     </div>
 
     <!-- Environmental Sensors Card -->
-    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RDht')}"
-         th:with="dhtTempResource=${lastEval.resourceWithId('RDhtTemp')}, dhtHumResource=${lastEval.resourceWithId('RDhtHumidity')}">
+    <div class="col-sm-6 col-lg-3" th:if="${#lists.contains(enabledResources, 'RGovee')}"
+         th:with="dhtTempResource=${lastEval.resourceWithId('RGoveeTemp')}, dhtHumResource=${lastEval.resourceWithId('RGoveeHumidity')}">
         <div class="card card-sm">
             <div class="card-body">
                 <div class="row align-items-center">
