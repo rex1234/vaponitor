@@ -11,6 +11,7 @@ import life.vaporized.servermonitor.app.monitor.model.AppDefinition
 import life.vaporized.servermonitor.app.monitor.resources.CpuUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.Dht22Monitor
 import life.vaporized.servermonitor.app.monitor.resources.DiskUsageMonitor
+import life.vaporized.servermonitor.app.monitor.resources.GoveeMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RamUsageMonitor
 import life.vaporized.servermonitor.app.monitor.resources.RaspberryTempMonitor
 import life.vaporized.servermonitor.app.util.getLogger
@@ -31,6 +32,7 @@ class MonitorConfigProvider {
             RamUsageMonitor,
             RaspberryTempMonitor,
             Dht22Monitor,
+            GoveeMonitor,
         )
     }
 
